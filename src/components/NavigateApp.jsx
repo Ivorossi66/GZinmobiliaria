@@ -12,7 +12,7 @@ export const NavigateApp = () => {
                 <Navbar.Toggle aria-controls="basic-navbar-nav" />
                 <Navbar.Collapse id="basic-navbar-nav">
                   <Nav className="me-auto">
-                    <NavLink to="/home" className="nav-link">Inicio</NavLink>
+                    <NavLink to="/" end className="nav-link">Inicio</NavLink>
                     <a href="#ubicacion" className="nav-link">Ubicación</a>
                     <a href="#contacto" className="nav-link">Contacto</a>
                   </Nav>
