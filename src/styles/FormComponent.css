@@ -1,0 +1,98 @@
+:root {
+  --colorPrincipal: #00f4c3;
+  --colorSecundario: #17275e;
+  --colorTerciario: #ffd900;
+  --tamanioh1: 2.5rem;
+  --tamanioh2: 1.8rem;
+  --tamanioh3: 1.5rem;
+  --tamanioP: 1.2rem;
+}
+
+/* CONTENEDOR GENERAL */
+.home-contacto {
+  background-color: #f9f9f9;
+  padding: 40px 20px;
+  border-top: 3px solid var(--colorPrincipal);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.contacto-title {
+  font-size: var(--tamanioh3);
+  color: var(--colorSecundario);
+  margin-bottom: 30px;
+  font-weight: 600;
+}
+
+/* FORMULARIO */
+form {
+  width: 100%;
+  max-width: 500px;
+  background-color: #fff;
+  padding: 30px 40px;
+  border-radius: 15px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* LABELS */
+form label {
+  font-weight: 600;
+  color: var(--colorSecundario);
+  margin-bottom: 8px;
+  display: block;
+  text-align: left;
+}
+
+/* CAMPOS DE ENTRADA */
+form input,
+form textarea {
+  width: 100%;
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 1rem;
+  font-family: 'Poppins', sans-serif;
+  transition: all 0.3s ease;
+}
+
+form input:focus,
+form textarea:focus {
+  outline: none;
+  border-color: var(--colorPrincipal);
+  box-shadow: 0 0 8px rgba(0, 244, 195, 0.4);
+}
+
+/* BOTÓN */
+form button {
+  background-color: var(--colorPrincipal);
+  border: none;
+  width: 100%;
+  margin-top: 10px;
+  padding: 12px;
+  color: var(--colorSecundario);
+  font-weight: 600;
+  font-size: 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+form button:hover {
+  background-color: var(--colorSecundario);
+  color: var(--colorTerciario);
+  transform: scale(1.02);
+}
+
+/* RESPONSIVE */
+@media (max-width: 600px) {
+  form {
+    padding: 25px 20px;
+  }
+
+  .contacto-title {
+    font-size: 1.5rem;
+  }
+}
+
