@@ -1,8 +1,10 @@
 :root {
-  --colorPrincipal: #00f4c3;
-  --colorSecundario: #17275e;
-  --colorTerciario: #ffd900;
-  --tamanioh1: 3rem;
+  --colorPrincipal: #2EC4B6;
+  --colorSecundario: #0d1321;
+  --colorTerciario: #FF9F1C;
+  --colorCuarto: #FFBF69;
+  --colorQuinto: #CBF3F0;
+  --tamanioh1: 3.5rem;
   --tamanioh2: 2.5rem;
   --tamanioh3: 2rem;
   --tamanioP: 1.5rem;
@@ -56,7 +58,7 @@ body::before {
 }
 
 .home-subtitle {
-  font-size: 1.4rem;
+  font-size: var(--tamanioP);
   font-weight: 400;
   color: #3E5C76;
 }
@@ -199,11 +201,11 @@ body::before {
 /* --- Responsive --- */
 @media (max-width: 768px) {
   .home-title {
-    font-size: 2rem;
+    font-size: 2.5rem;
   }
 
   .home-subtitle {
-    font-size: 1.1rem;
+    font-size: 1.2rem;
   }
 
   .home-map {

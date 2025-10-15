@@ -1,10 +1,18 @@
+:root {
+  --colorPrincipal: #2EC4B6;
+  --colorSecundario: #0d1321;
+  --colorTerciario: #FF9F1C;
+  --colorCuarto: #FFBF69;
+  --colorQuinto: #CBF3F0;
+}
+
 body {
   margin: 0;
   padding: 0;
 }
 
 .footer {
-  background-color: #00f4c3;
+  background-color: var(--colorPrincipal);
   width: 100%;
   color: #fff;
   padding: 40px 20px;

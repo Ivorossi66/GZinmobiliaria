@@ -1,7 +1,9 @@
 :root {
-  --colorPrincipal: #00f4c3;
-  --colorSecundario: #17275e;
-  --colorTerciario: #ffd900;
+  --colorPrincipal: #2EC4B6;
+  --colorSecundario: #0d1321;
+  --colorTerciario: #FF9F1C;
+  --colorCuarto: #FFBF69;
+  --colorQuinto: #CBF3F0;
 }
 
 /* CONTENEDOR GENERAL */

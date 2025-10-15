@@ -1,11 +1,13 @@
 :root {
-  --colorPrincipal: #00f4c3;
-  --colorSecundario: #17275e;
-  --colorTerciario: #ffd900;
-  --tamanioh1: 2.5rem;
-  --tamanioh2: 1.8rem;
-  --tamanioh3: 1.5rem;
-  --tamanioP: 1.2rem;
+  --colorPrincipal: #2EC4B6;
+  --colorSecundario: #0d1321;
+  --colorTerciario: #FF9F1C;
+  --colorCuarto: #FFBF69;
+  --colorQuinto: #CBF3F0;
+  --tamanioh1: 3.5rem;
+  --tamanioh2: 2.5rem;
+  --tamanioh3: 2rem;
+  --tamanioP: 1.5rem;
 }
 
 /* CONTENEDOR GENERAL */
@@ -28,8 +30,8 @@
 
 /* FORMULARIO */
 form {
-  width: 100%;
-  max-width: 500px;
+  width: 120%;
+  max-width: 700px;
   background-color: #fff;
   padding: 30px 40px;
   border-radius: 15px;
@@ -38,7 +40,8 @@ form {
 
 /* LABELS */
 form label {
-  font-weight: 600;
+  font-weight: 550;
+  font-size: 1.4rem;
   color: var(--colorSecundario);
   margin-bottom: 8px;
   display: block;
@@ -52,7 +55,7 @@ form textarea {
   border: 2px solid #ddd;
   border-radius: 8px;
   padding: 10px 14px;
-  font-size: 1rem;
+  font-size: 1.3rem;
   font-family: 'Poppins', sans-serif;
   transition: all 0.3s ease;
 }
@@ -66,14 +69,14 @@ form textarea:focus {
 
 /* BOTÓN */
 form button {
-  background-color: var(--colorPrincipal);
+  background-color: var(--colorSecundario);
   border: none;
   width: 100%;
   margin-top: 10px;
   padding: 12px;
   color: var(--colorSecundario);
-  font-weight: 600;
-  font-size: 1rem;
+  font-weight: 650;
+  font-size: var(--tamanioP);
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.3s ease;
