@@ -11,7 +11,7 @@ import { IoPersonSharp } from 'react-icons/io5';
 // --- Imports para la reserva ---
 import { DayPicker } from 'react-day-picker';
 import 'react-day-picker/dist/style.css';
-import  supabase  from '../supabaseClient';
+import  supabase  from '../supabaseClient'; // <-- Importación corregida y estandarizada
 
 // --- Función Helper para formatear fechas ---
 const formatFecha = (date) => {
@@ -44,7 +44,7 @@ export const Deptos = () => {
       setLoading(true);
 
       const { data, error } = await supabase
-        .from('reservas') // <-- CORREGIDO A MINÚSCULAS
+        .from('reservas')
         .select('fecha_inicio, fecha_fin')
         .eq('id_apartamento', parseInt(id))
         .in('estado', ['Confirmada', 'Pendiente']);
@@ -98,6 +98,8 @@ export const Deptos = () => {
       .gt('fecha_fin', fecha_inicio_str);
 
     if (errorConflicto) {
+      // ESTE ES EL ERROR QUE ESTÁS VIENDO
+      console.error('Error en el chequeo de overlap:', errorConflicto); // Añade esto
       setErrorReserva('Error al verificar disponibilidad. Intenta de nuevo.');
       setLoading(false);
       return;
@@ -281,6 +283,7 @@ export const Deptos = () => {
           {/* == FIN: CALENDARIO Y FORMULARIO DE RESERVA == */}
         </div>
       </div>
+
       <Footer />
     </>
   );
