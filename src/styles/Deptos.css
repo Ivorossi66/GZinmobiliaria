@@ -1,0 +1,289 @@
+:root {
+  --colorPrincipal: #2EC4B6;
+  --colorSecundario: #0d1321;
+  --colorTerciario: #FF9F1C;
+  --colorCuarto: #FFBF69;
+  --colorQuinto: #CBF3F0;
+}
+
+/* CONTENEDOR GENERAL */
+.depto-container {
+  max-width: 900px;
+  margin: 40px auto;
+  text-align: center;
+  font-family: 'Poppins', sans-serif;
+  color: #222;
+  padding: 0 1.5rem;
+}
+
+.depto-container h1 {
+  margin-bottom: 20px;
+  font-size: 2.5rem;
+  color: var(--colorTerciario);
+}
+
+/* --- PRECIOS --- */
+.depto-precio {
+  margin-top: 30px;
+  text-align: center;
+}
+
+.depto-precio h3 {
+  color: var(--colorSecundario);
+  font-size: 1.5rem;
+  margin-bottom: 15px;
+  font-weight: 600;
+}
+
+.precios {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.precio-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  background: var(--colorSecundario);
+  padding: 12px 20px;
+  border-radius: 12px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  width: fit-content;
+  min-width: 180px;
+}
+
+.precio-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+}
+
+/* --- ÍCONOS --- */
+.precio-item svg {
+  color: #ffffff;
+  font-size: 1.1rem;
+}
+
+.precio-item span {
+  color: white;
+  font-weight: 600;
+  font-size: 1.2rem;
+}
+
+/* --- INFORMACIÓN --- */
+.depto-info {
+  margin-top: 40px;
+  text-align: left;
+}
+
+.depto-info h3 {
+  margin: 20px 0 10px;
+  color: var(--colorSecundario);
+  font-size: 1.5rem;
+}
+
+.depto-info p {
+  font-size: 1rem;
+  color: #000000;
+  line-height: 1.5;
+  font-weight: 500;
+}
+
+/* --- SERVICIOS --- */
+.servicios-lista {
+  list-style: none;
+  padding: 0;
+}
+
+.servicios-lista li {
+  margin-bottom: 6px;
+  padding-left: 15px;
+  position: relative;
+  font-size: 1rem;
+}
+
+.servicios-lista li::before {
+  content: "✔";
+  color: var(--colorTerciario);
+  position: absolute;
+  left: 0;
+  top: 0;
+  font-size: 1.1rem;
+}
+
+/* --- MAPA --- */
+.map-container {
+  position: relative;
+  width: 100%;
+  height: 550px; 
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.map-container:hover {
+  transform: scale(1.01);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+}
+
+/* --- BOTÓN WHATSAPP --- */
+.whatsapp-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background-color: #25d366;
+  color: white;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-weight: 600;
+  text-decoration: none;
+  margin-top: 20px;
+  transition: background 0.3s ease, transform 0.2s ease;
+}
+
+.whatsapp-btn:hover {
+  background-color: #1ebe5d;
+  transform: scale(1.05);
+}
+
+/* == INICIO: ESTILOS RESERVA Y CALENDARIO (NUEVO) == */
+.reserva-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-top: 40px;
+  padding-top: 30px;
+  border-top: 2px solid var(--colorQuinto);
+}
+
+.rdp {
+  margin: 15px 0;
+  --rdp-color-selected: white;
+}
+.rdp-day_disabled { opacity: 0.3; }
+
+.reserva-form {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 500px;
+  gap: 15px; 
+}
+.form-group {
+  text-align: left;
+}
+.form-group label {
+  font-weight: 600;
+  color: var(--colorSecundario);
+  margin-bottom: 5px;
+  display: block;
+}
+.form-group input {
+  width: 100%;
+  padding: 12px;
+  border: 2px solid #ccc;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-family: 'Poppins', sans-serif;
+  box-sizing: border-box; 
+}
+.form-group input:focus {
+  border-color: var(--colorPrincipal);
+  outline: none;
+}
+
+.boton-reservar {
+  background-color: var(--colorPrincipal);
+  color: white; 
+  padding: 14px;
+  border: none;
+  border-radius: 8px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+.boton-reservar:hover {
+  background-color: var(--colorSecundario); 
+  color: #CBF3F0;
+}
+.boton-reservar:disabled {
+  background-color: #aaa;
+  cursor: not-allowed;
+}
+.error-msg, .exito-msg {
+  padding: 12px;
+  border-radius: 8px;
+  font-weight: 500;
+  text-align: center;
+}
+.error-msg { background-color: #f8d7da; color: #721c24; }
+.exito-msg { background-color: var(--colorQuinto); color: var(--colorSecundario); }
+
+.fecha-seleccionada {
+  font-weight: 500;
+  color: var(--colorSecundario);
+  margin-bottom: 10px;
+}
+.fecha-seleccionada p { margin: 2px 0; }
+.fecha-seleccionada strong { color: var(--colorPrincipal); }
+
+/* --- RESPONSIVE --- */
+@media (max-width: 992px) {
+  .map-container { height: 400px; }
+}
+
+@media (max-width: 768px) {
+  .map-container { height: 450px; border-radius: 12px; }
+  .depto-container { padding: 0 1rem; }
+  .depto-container h1 { font-size: 1.8rem; }
+  .depto-precio h3 { font-size: 1.4rem; }
+  .precio-item { flex-wrap: wrap; padding: 10px 16px; }
+  .precio-item span { font-size: 1rem; }
+  .depto-info h3 { font-size: 1.1rem; }
+  .depto-info p { font-size: 0.95rem;}
+}
+
+@media (max-width: 576px) {
+  .map-container {
+    width: 100%;
+    height: 420px;
+    border-radius: 10px;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+  }
+  .carousel img {
+    width: 100%; 
+    max-height: 450px; 
+    object-fit: cover; 
+    border-radius: 12px;
+  }
+  .rdp-months { flex-direction: column; }
+  .rdp { --rdp-cell-size: 35px; }
+}
+
+/* Celulares */
+@media (max-width: 480px) {
+  .carousel img {
+    width: 100%;    
+    max-height: 300px; 
+    object-fit: cover; 
+    border-radius: 12px;
+  }
+
+  .depto-container {
+    margin: 25px auto; padding: 0 0.8rem; }
+  .depto-container h1 { font-size: 1.6rem; }
+  .depto-precio h3 { font-size: 1.2rem; }
+  .precio-item {
+    flex-wrap: wrap;
+    padding: 8px 12px;
+    min-width: 140px;
+  }
+  .precio-item span { font-size: 0.95rem; }
+  .precio-item svg { font-size: 0.95rem; }
+  .depto-info { text-align: center; }
+  .depto-info h3 { margin: 15px 0 8px; }
+}

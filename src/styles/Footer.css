@@ -1,0 +1,106 @@
+:root {
+  --colorPrincipal: #2EC4B6;
+  --colorSecundario: #0d1321;
+  --colorTerciario: #FF9F1C;
+  --colorCuarto: #FFBF69;
+  --colorQuinto: #CBF3F0;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+}
+
+.footer {
+  background-color: var(--colorPrincipal);
+  width: 100%;
+  color: #fff;
+  padding: 40px 20px;
+  text-align: center;
+  font-family: "Poppins", sans-serif;
+}
+
+.footer-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+/* Logo */
+.footer-logo img {
+  width: 130px;
+  height: auto;
+  filter: brightness(0) invert(1);
+}
+
+/* Redes */
+.footer-redes h4 {
+  font-weight: 600;
+  font-size: 1.2rem;
+  margin-bottom: 5px;
+}
+
+.footer-icons {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+}
+
+.footer-icons a {
+  color: #fff;
+  font-size: 1.6rem;
+  transition: color 0.3s ease, transform 0.3s ease;
+}
+
+.footer-icons a:hover {
+  color: #0d6efd;
+  transform: scale(1.1);
+}
+
+/* Dirección */
+.footer-direccion {
+  font-size: 1rem;
+  color: #ffffff;
+}
+
+/* Horarios de atención */
+.footer-horarios {
+  font-size: 1rem;
+  color: #ffffff;
+}
+
+/* Derechos */
+.footer-derechos {
+  font-size: 0.85rem;
+  color: #ffffff;
+}
+
+.footer-derechos a {
+  color: #0d6efd;
+  text-decoration: none;
+  font-style: italic;
+}
+
+.footer-derechos a:hover {
+  text-decoration: underline;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .footer {
+    padding: 30px 15px;
+  }
+
+  .footer-logo img {
+    width: 150px;
+  }
+
+  .footer-icons a {
+    font-size: 1.4rem;
+  }
+
+  .footer-direccion {
+    font-size: 0.9rem;
+  }
+}

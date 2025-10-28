@@ -1,0 +1,49 @@
+:root {
+  --colorPrincipal: #2EC4B6;
+  --colorSecundario: #0d1321;
+  --colorTerciario: #FF9F1C;
+  --colorCuarto: #FFBF69;
+  --colorQuinto: #CBF3F0;
+}
+
+/* Estilos generales */
+.navbar {
+  background-color: var(--colorPrincipal) !important;
+}
+
+.navbar-brand {
+  color: white !important;
+  font-size: 2rem;
+}
+
+/* Logo */
+.navbar-brand img {
+  max-height: 40px;
+}
+
+/* Links */
+.nav-link {
+  font-weight: 500;
+  font-size: 1.5rem;
+  color: white !important;
+  margin: 0 0.5rem;
+  transition: color 0.3s ease;
+}
+
+.nav-link:hover {
+  color: var(--colorTerciario) !important;
+}
+
+/* Centrado y espaciado */
+.navbar-nav {
+  justify-content: flex-end;
+  align-items: center;
+  width: 100%;
+}
+
+/* Responsive */
+@media (max-width: 400px) {
+  .navbar-brand {
+    font-size: 1.5rem;
+  }
+}
