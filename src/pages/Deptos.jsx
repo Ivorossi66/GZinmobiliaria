@@ -11,9 +11,9 @@ import { IoPersonSharp } from 'react-icons/io5';
 // --- Imports para la reserva ---
 import { DayPicker } from 'react-day-picker';
 import 'react-day-picker/dist/style.css';
-import  supabase  from '../supabaseClient'; // <-- Importación corregida y estandarizada
+import  supabase  from '../supabaseClient';
 
-// --- Función Helper para formatear fechas ---
+// --- Función para formatear fechas a d-m-a ---
 const formatFecha = (date) => {
   if (!date) return '';
   const dia = String(date.getDate()).padStart(2, '0');

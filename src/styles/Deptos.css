@@ -128,26 +128,6 @@
   box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
 }
 
-/* --- BOTÓN WHATSAPP --- */
-.whatsapp-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  background-color: #25d366;
-  color: white;
-  padding: 10px 16px;
-  border-radius: 8px;
-  font-weight: 600;
-  text-decoration: none;
-  margin-top: 20px;
-  transition: background 0.3s ease, transform 0.2s ease;
-}
-
-.whatsapp-btn:hover {
-  background-color: #1ebe5d;
-  transform: scale(1.05);
-}
 
 /* == INICIO: ESTILOS RESERVA Y CALENDARIO (NUEVO) == */
 .reserva-container {
@@ -156,9 +136,9 @@
   align-items: center;
   margin-top: 40px;
   padding-top: 30px;
-  border-top: 2px solid var(--colorQuinto);
+  border-top: 4px solid var(--colorQuinto);
 }
-
+.reserva-container h3 { color: var(--colorSecundario); }
 .rdp {
   margin: 15px 0;
   --rdp-color-selected: white;
@@ -208,7 +188,7 @@
 }
 .boton-reservar:hover {
   background-color: var(--colorSecundario); 
-  color: #CBF3F0;
+  color: #ffffff;
 }
 .boton-reservar:disabled {
   background-color: #aaa;
