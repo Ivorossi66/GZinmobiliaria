@@ -33,23 +33,35 @@ export const AdminPanel = () => {
 
     // 2. Función para cambiar el estado
     const handleEstadoChange = async (id, nuevoEstado) => {
-        if (nuevoEstado === 'Cancelada') {
-            if (!window.confirm('¿Seguro que quieres CANCELAR esta reserva? Se liberará la fecha.')) {
-                return;
-            }
-        }
+    if (nuevoEstado === 'Cancelada') {
+      if (!window.confirm('¿Seguro que quieres BORRAR PERMANENTEMENTE esta reserva?')) {
+        return;
+      }
+      // --- BORRADO ---
+      const { error } = await supabase
+        .from('reservas')
+        .delete()
+        .eq('id_reserva', id);
 
-        const { error } = await supabase
-            .from('reservas')
-            .update({ estado: nuevoEstado })
-            .eq('id_reserva', id);
+      if (error) {
+        alert('Error al borrar la reserva.');
+      } else {
+        fetchReservas();
+      }
+    } else {
+      // --- ACTUALIZACIÓN ---
+      const { error } = await supabase
+        .from('reservas')
+        .update({ estado: nuevoEstado })
+        .eq('id_reserva', id);
 
-        if (error) {
-            alert('Error al actualizar el estado.');
-        } else {
-            fetchReservas();
-        }
-    };
+      if (error) {
+        alert('Error al actualizar el estado.');
+      } else {
+        fetchReservas(); 
+      }
+    }
+  };
 
     // 3. Función de Logout
     const handleLogout = async () => {

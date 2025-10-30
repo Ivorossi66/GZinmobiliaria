@@ -214,8 +214,7 @@ export const Deptos = () => {
             />
           </div>
 
-          {/* == INICIO: CALENDARIO Y FORMULARIO DE RESERVA == */}
-
+          {/* CALENDARIO Y FORMULARIO DE RESERVA */}
           <div className="reserva-container">
             <h3>Disponibilidad y Reserva</h3>
             <p>Selecciona tu fecha de check-in y check-out en el calendario.</p>
@@ -230,8 +229,7 @@ export const Deptos = () => {
               numberOfMonths={2}
               fromDate={new Date()}
             />
-
-            {/* --- DIV PARA FECHAS SELECCIONADAS --- */}
+            {/* --- FECHAS SELECCIONADAS --- */}
             <div className="fecha-seleccionada">
               {rangoSeleccionado?.from && (
                 <p>
@@ -244,8 +242,7 @@ export const Deptos = () => {
                 </p>
               )}
             </div>
-            {/* --- FIN DIV FECHAS --- */}
-
+            {/* --- FIN FECHAS --- */}
             <form onSubmit={handleReservar} className="reserva-form">
               <div className="form-group">
                 <label htmlFor="nombre">Nombre Completo</label>
@@ -267,7 +264,7 @@ export const Deptos = () => {
                   value={cantidadPersonas}
                   onChange={(e) => setCantidadPersonas(parseInt(e.target.value))}
                   min="1"
-                  max={depto.capacidad} // Asegúrate que 'depto.capacidad' exista en tus datos
+                  max={depto.capacidad}
                   required
                 />
               </div>
@@ -280,7 +277,6 @@ export const Deptos = () => {
               </button>
             </form>
           </div>
-          {/* == FIN: CALENDARIO Y FORMULARIO DE RESERVA == */}
         </div>
       </div>
 
