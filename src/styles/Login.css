@@ -1,0 +1,33 @@
+.login-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 15px;
+  min-height: 70vh;
+}
+.login-form {
+  width: 100%;
+  max-width: 400px;
+  padding: 30px;
+  border: 1px solid #eee;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+.login-form h2 {
+  text-align: center;
+  margin-bottom: 25px;
+}
+.link-home {
+    margin-top: 20px;
+    text-align: center;
+    font-size: 0.95rem;
+    color: #555;
+}
+.link-home a {
+    color: var(--colorPrincipal); /* Usa tu color principal */
+    text-decoration: none;
+    font-weight: 600;
+}
+.link-home a:hover {
+    text-decoration: underline;
+}

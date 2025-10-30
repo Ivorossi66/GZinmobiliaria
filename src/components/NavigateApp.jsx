@@ -5,9 +5,9 @@ import logo from '../assets/images/logo1.png';
 
 export const NavigateApp = () => {
   return (
-    <Navbar expand="lg" className="bg-body-tertiary">
+    <Navbar expand="lg">
               <Container fluid>
-                <img src={logo} alt="Logo GZ Inmobiliaria" />
+                <img src={logo} alt="Logo GZ Inmobiliaria"  />
                 <Navbar.Brand className='navBar-titulo'>GZ Inmobiliaria</Navbar.Brand>
                 <Navbar.Toggle aria-controls="basic-navbar-nav" />
                 <Navbar.Collapse id="basic-navbar-nav">
