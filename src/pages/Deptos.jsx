@@ -7,10 +7,10 @@ import '../components/NavigateApp';
 import '../styles/Deptos.css';
 import '../styles/Home.css';
 import { IoPersonSharp } from 'react-icons/io5';
-import { FaWhatsapp } from 'react-icons/fa'; 
+import { FaWhatsapp } from 'react-icons/fa';
 import { DayPicker } from 'react-day-picker';
 import 'react-day-picker/dist/style.css';
-import  supabase  from '../supabaseClient';
+import supabase from '../supabaseClient';
 import { Modal, Button } from 'react-bootstrap';
 
 // --- Función para formatear fechas a d-m-a ---
@@ -26,18 +26,14 @@ export const Deptos = () => {
   const { id } = useParams();
   const depto = deptos.find((d) => d.id === id);
 
-  //Estados para la reserva
+  //Estados
   const [diasOcupados, setDiasOcupados] = useState([]);
   const [rangoSeleccionado, setRangoSeleccionado] = useState(undefined);
   const [loading, setLoading] = useState(true);
   const [errorReserva, setErrorReserva] = useState('');
   const [exitoReserva, setExitoReserva] = useState('');
-
-  //Estados para el formulario
   const [nombreCompleto, setNombreCompleto] = useState('');
   const [cantidadPersonas, setCantidadPersonas] = useState(1);
-
-  // Estados para el modal
   const [showModal, setShowModal] = useState(false);
   const [reservaInfo, setReservaInfo] = useState(null);
 
@@ -58,8 +54,8 @@ export const Deptos = () => {
         setErrorReserva('No se pudo cargar la disponibilidad.');
       } else {
         const rangosOcupados = data.map((reserva) => {
-          const fromDate = new Date(reserva.fecha_inicio + 'T00:00:00Z');
-          const toDate = new Date(reserva.fecha_fin + 'T00:00:00Z');
+          const fromDate = new Date(reserva.fecha_inicio + 'T00:00:00');
+          const toDate = new Date(reserva.fecha_fin + 'T00:00:00');
           toDate.setDate(toDate.getDate() - 1);
           return { from: fromDate, to: toDate };
         });
@@ -88,22 +84,41 @@ export const Deptos = () => {
 
     setLoading(true);
 
-    // 1. CÁLCULO DE SEÑA 
+    // --- 1. LÓGICA DE CÁLCULO DE SEÑA ---
     let montoSeniaNum = 0;
     try {
-      const preciosDelDepto = depto.precios_senia;
-      const personasParaCalculo = Math.min(cantidadPersonas, depto.capacidad || 4);
-      montoSeniaNum = preciosDelDepto[personasParaCalculo];
-      if (!montoSeniaNum) {
-        setErrorReserva(`No se pudo calcular la seña para ${cantidadPersonas} personas.`);
+      // A. Calcular número de noches
+      const fechaInicio = new Date(rangoSeleccionado.from);
+      const fechaFin = new Date(rangoSeleccionado.to);
+      const tiempoDiferencia = fechaFin.getTime() - fechaInicio.getTime();
+      const numeroDeNoches = Math.ceil(tiempoDiferencia / (1000 * 3600 * 24));
+
+      if (numeroDeNoches <= 0) {
+        setErrorReserva('La fecha de check-out debe ser posterior a la de check-in.');
         setLoading(false);
         return;
       }
+
+      // B. Encontrar el precio por noche
+      const precioInfo = depto.precio.find(p => p.personas === parseInt(cantidadPersonas));
+      if (!precioInfo) {
+        setErrorReserva(`No se encontró un precio para ${cantidadPersonas} personas.`);
+        setLoading(false);
+        return;
+      }
+      const precioPorNoche = precioInfo.precio;
+
+      // C. Calcular seña (50% del total)
+      const montoTotal = precioPorNoche * numeroDeNoches;
+      montoSeniaNum = montoTotal * 0.5;
+
     } catch (calcError) {
+      console.error('Error calculando seña:', calcError, depto);
       setErrorReserva('Error al calcular el monto de la seña.');
       setLoading(false);
       return;
     }
+    // --- FIN DE LÓGICA DE CÁLCULO ---
 
     const fecha_inicio_str = rangoSeleccionado.from.toISOString().split('T')[0];
     const fecha_fin_str = rangoSeleccionado.to.toISOString().split('T')[0];
@@ -116,7 +131,7 @@ export const Deptos = () => {
       .in('estado', ['Confirmada', 'Pendiente'])
       .lt('fecha_inicio', fecha_fin_str)
       .gt('fecha_fin', fecha_inicio_str);
-      
+
     if (errorConflicto) {
       console.error('Error en el chequeo de overlap:', errorConflicto);
       setErrorReserva('Error al verificar disponibilidad. Intenta de nuevo.');
@@ -130,7 +145,7 @@ export const Deptos = () => {
       return;
     }
 
-    // 3. CREAR LA RESERVA
+    // 3. CREAR LA RESERVA 
     const { error: errorInsert } = await supabase
       .from('reservas')
       .insert({
@@ -148,8 +163,8 @@ export const Deptos = () => {
       setErrorReserva('Error al guardar la reserva. Intenta de nuevo.');
       console.error('Error insertando:', errorInsert);
     } else {
-      
-      // --- 4.  LÓGICA DE ÉXITO ---
+
+      // 4. LÓGICA DE ÉXITO (MODAL)
       setReservaInfo({
         nombre: nombreCompleto,
         depto: depto.nombre,
@@ -157,13 +172,13 @@ export const Deptos = () => {
         fechaInicio: formatFecha(rangoSeleccionado.from),
         fechaFin: formatFecha(rangoSeleccionado.to)
       });
-      
-      // Limpiamos el formulario
+
       setRangoSeleccionado(undefined);
       setNombreCompleto('');
       setCantidadPersonas(1);
-      setExitoReserva(''); 
-      setShowModal(true); 
+      setExitoReserva('');
+      setShowModal(true);
+
       setDiasOcupados([
         ...diasOcupados,
         {
@@ -175,19 +190,18 @@ export const Deptos = () => {
     setLoading(false);
   };
 
-  // --- FUNCIÓN PARA ENVIAR WHATSAPP ---
+  // --- FUNCIÓN DE WHATSAPP ---
   const handleWhatsAppNotify = () => {
-    const adminNumber = '5493516878172'; 
-    
-    // Mensaje pre-cargado
+    const adminNumber = '5493516878172';
+
     const mensaje = `¡Hola! Acabo de hacer una reserva a nombre de ${reservaInfo.nombre} para el ${reservaInfo.depto} (del ${reservaInfo.fechaInicio} al ${reservaInfo.fechaFin}). Ya te envío el comprobante de la seña de $${reservaInfo.monto.toLocaleString('es-AR')}.`;
-    
-    // link de WhatsApp
+
     const whatsappUrl = `https://wa.me/${adminNumber}?text=${encodeURIComponent(mensaje)}`;
-    
+
     window.open(whatsappUrl, '_blank');
     setShowModal(false);
   };
+
 
   if (!depto) return <h2>Departamento no encontrado</h2>;
 
@@ -228,6 +242,20 @@ export const Deptos = () => {
 
           <h3>Seña</h3>
           <p>{depto.senia}</p>
+
+          {depto.descuento && (
+            <>
+              <h3>Descuento</h3>
+              <p>{depto.descuento}</p>
+            </>
+          )}
+
+          <h3>Horario</h3>
+          <p>{depto.horario}</p>
+          <h3>Prohibido Fumar</h3>
+          <h3>Dirección</h3>
+          <p>{depto.direccion}</p>
+
           <h3>Mapa</h3>
           <div className="map-container" id="ubicacion">
             <div
@@ -249,7 +277,6 @@ export const Deptos = () => {
               onSelect={setRangoSeleccionado}
               disabled={[...diasOcupados, { before: new Date() }]}
               numberOfMonths={1}
-              fromDate={new Date()}
             />
             <div className="fecha-seleccionada">
               {rangoSeleccionado?.from && (

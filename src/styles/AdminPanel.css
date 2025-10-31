@@ -50,3 +50,50 @@
 .estado-pendiente { border-left: 5px solid #FF9F1C; }
 .estado-confirmada { border-left: 5px solid #2EC4B6; } 
 .estado-cancelada { border-left: 5px solid #aaa; }
+
+.resumen-mensual {
+  background-color: #f8f9fa;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 30px;
+}
+.mes-resumen {
+  margin-bottom: 15px;
+}
+.mes-resumen h4 {
+  border-bottom: 2px solid var(--colorPrincipal);
+  padding-bottom: 5px;
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--colorSecundario);
+}
+.dias-lista {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+.dia-ocupado {
+  background-color: var(--colorSecundario);
+  color: white;
+  min-width: 35px;
+  text-align: center;
+  padding: 5px 10px;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+/* Divisor visual */
+.admin-divider {
+  margin: 30px 0;
+  border-top: 2px solid #eee;
+}
+
+.reservas-lista h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--colorSecundario);
+  margin-bottom: 20px;
+}
