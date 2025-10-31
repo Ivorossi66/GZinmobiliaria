@@ -138,6 +138,7 @@
   padding-top: 30px;
   border-top: 4px solid var(--colorQuinto);
 }
+
 .reserva-container h3 { color: var(--colorSecundario); }
 .rdp {
   margin: 15px 0;
@@ -210,6 +211,28 @@
 }
 .fecha-seleccionada p { margin: 2px 0; }
 .fecha-seleccionada strong { color: var(--colorPrincipal); }
+
+.datos-bancarios {
+  background-color: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 8px;
+  padding: 15px;
+  margin-top: 10px;
+}
+
+.datos-bancarios p {
+  font-family: 'Courier New', Courier, monospace;
+  margin-bottom: 8px;
+  font-size: 1.1rem;
+}
+
+.datos-bancarios p strong { font-family: 'Poppins', sans-serif; }
+
+.modal-footer .btn-success {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
 
 /* --- RESPONSIVE --- */
 @media (max-width: 992px) {

@@ -7,17 +7,17 @@ import '../components/NavigateApp';
 import '../styles/Deptos.css';
 import '../styles/Home.css';
 import { IoPersonSharp } from 'react-icons/io5';
-
-// --- Imports para la reserva ---
+import { FaWhatsapp } from 'react-icons/fa'; 
 import { DayPicker } from 'react-day-picker';
 import 'react-day-picker/dist/style.css';
 import  supabase  from '../supabaseClient';
+import { Modal, Button } from 'react-bootstrap';
 
 // --- Función para formatear fechas a d-m-a ---
 const formatFecha = (date) => {
   if (!date) return '';
   const dia = String(date.getDate()).padStart(2, '0');
-  const mes = String(date.getMonth() + 1).padStart(2, '0'); // +1 porque Enero es 0
+  const mes = String(date.getMonth() + 1).padStart(2, '0');
   const anio = date.getFullYear();
   return `${dia}-${mes}-${anio}`;
 };
@@ -36,6 +36,10 @@ export const Deptos = () => {
   //Estados para el formulario
   const [nombreCompleto, setNombreCompleto] = useState('');
   const [cantidadPersonas, setCantidadPersonas] = useState(1);
+
+  // Estados para el modal
+  const [showModal, setShowModal] = useState(false);
+  const [reservaInfo, setReservaInfo] = useState(null);
 
   //Cargar las fechas ocupadas de Supabase
   useEffect(() => {
@@ -77,7 +81,6 @@ export const Deptos = () => {
       setErrorReserva('Por favor, selecciona un rango de fechas.');
       return;
     }
-
     if (!nombreCompleto || cantidadPersonas < 1) {
       setErrorReserva('Por favor, completa tu nombre y la cantidad de personas.');
       return;
@@ -85,10 +88,27 @@ export const Deptos = () => {
 
     setLoading(true);
 
+    // 1. CÁLCULO DE SEÑA 
+    let montoSeniaNum = 0;
+    try {
+      const preciosDelDepto = depto.precios_senia;
+      const personasParaCalculo = Math.min(cantidadPersonas, depto.capacidad || 4);
+      montoSeniaNum = preciosDelDepto[personasParaCalculo];
+      if (!montoSeniaNum) {
+        setErrorReserva(`No se pudo calcular la seña para ${cantidadPersonas} personas.`);
+        setLoading(false);
+        return;
+      }
+    } catch (calcError) {
+      setErrorReserva('Error al calcular el monto de la seña.');
+      setLoading(false);
+      return;
+    }
+
     const fecha_inicio_str = rangoSeleccionado.from.toISOString().split('T')[0];
     const fecha_fin_str = rangoSeleccionado.to.toISOString().split('T')[0];
 
-    // 1. VERIFICACIÓN DE OVERLAP
+    // 2. VERIFICACIÓN DE OVERLAP
     const { data: conflicto, error: errorConflicto } = await supabase
       .from('reservas')
       .select('id_reserva')
@@ -96,10 +116,9 @@ export const Deptos = () => {
       .in('estado', ['Confirmada', 'Pendiente'])
       .lt('fecha_inicio', fecha_fin_str)
       .gt('fecha_fin', fecha_inicio_str);
-
+      
     if (errorConflicto) {
-      // ESTE ES EL ERROR QUE ESTÁS VIENDO
-      console.error('Error en el chequeo de overlap:', errorConflicto); // Añade esto
+      console.error('Error en el chequeo de overlap:', errorConflicto);
       setErrorReserva('Error al verificar disponibilidad. Intenta de nuevo.');
       setLoading(false);
       return;
@@ -111,9 +130,7 @@ export const Deptos = () => {
       return;
     }
 
-    // 2. CREAR LA RESERVA
-    const montoSeniaNum = parseFloat(depto.senia.replace('$', '').replace(/\./g, ''));
-
+    // 3. CREAR LA RESERVA
     const { error: errorInsert } = await supabase
       .from('reservas')
       .insert({
@@ -124,24 +141,29 @@ export const Deptos = () => {
         fecha_fin: fecha_fin_str,
         monto_seña: montoSeniaNum,
         estado: 'Pendiente',
-        metodo_pago: 'Pendiente',
+        metodo_pago: 'Transferencia',
       });
 
     if (errorInsert) {
       setErrorReserva('Error al guardar la reserva. Intenta de nuevo.');
       console.error('Error insertando:', errorInsert);
     } else {
-      // --- MENSAJE DE ÉXITO ACTUALIZADO ---
-      setExitoReserva(
-        `¡Reserva creada del ${formatFecha(rangoSeleccionado.from)} al ${formatFecha(
-          rangoSeleccionado.to
-        )}! Queda pendiente de pago.`
-      );
-      // Limpiar formulario
+      
+      // --- 4.  LÓGICA DE ÉXITO ---
+      setReservaInfo({
+        nombre: nombreCompleto,
+        depto: depto.nombre,
+        monto: montoSeniaNum,
+        fechaInicio: formatFecha(rangoSeleccionado.from),
+        fechaFin: formatFecha(rangoSeleccionado.to)
+      });
+      
+      // Limpiamos el formulario
       setRangoSeleccionado(undefined);
       setNombreCompleto('');
       setCantidadPersonas(1);
-      // Actualizar el calendario con la nueva reserva
+      setExitoReserva(''); 
+      setShowModal(true); 
       setDiasOcupados([
         ...diasOcupados,
         {
@@ -151,6 +173,20 @@ export const Deptos = () => {
       ]);
     }
     setLoading(false);
+  };
+
+  // --- FUNCIÓN PARA ENVIAR WHATSAPP ---
+  const handleWhatsAppNotify = () => {
+    const adminNumber = '5493516878172'; 
+    
+    // Mensaje pre-cargado
+    const mensaje = `¡Hola! Acabo de hacer una reserva a nombre de ${reservaInfo.nombre} para el ${reservaInfo.depto} (del ${reservaInfo.fechaInicio} al ${reservaInfo.fechaFin}). Ya te envío el comprobante de la seña de $${reservaInfo.monto.toLocaleString('es-AR')}.`;
+    
+    // link de WhatsApp
+    const whatsappUrl = `https://wa.me/${adminNumber}?text=${encodeURIComponent(mensaje)}`;
+    
+    window.open(whatsappUrl, '_blank');
+    setShowModal(false);
   };
 
   if (!depto) return <h2>Departamento no encontrado</h2>;
@@ -192,20 +228,6 @@ export const Deptos = () => {
 
           <h3>Seña</h3>
           <p>{depto.senia}</p>
-
-          {depto.descuento && (
-            <>
-              <h3>Descuento</h3>
-              <p>{depto.descuento}</p>
-            </>
-          )}
-
-          <h3>Horario</h3>
-          <p>{depto.horario}</p>
-
-          <h3>Dirección</h3>
-          <p>{depto.direccion}</p>
-
           <h3>Mapa</h3>
           <div className="map-container" id="ubicacion">
             <div
@@ -225,24 +247,18 @@ export const Deptos = () => {
               mode="range"
               selected={rangoSeleccionado}
               onSelect={setRangoSeleccionado}
-              disabled={diasOcupados}
-              numberOfMonths={2}
+              disabled={[...diasOcupados, { before: new Date() }]}
+              numberOfMonths={1}
               fromDate={new Date()}
             />
-            {/* --- FECHAS SELECCIONADAS --- */}
             <div className="fecha-seleccionada">
               {rangoSeleccionado?.from && (
-                <p>
-                  Check-in: <strong>{formatFecha(rangoSeleccionado.from)}</strong>
-                </p>
+                <p>Check-in: <strong>{formatFecha(rangoSeleccionado.from)}</strong></p>
               )}
               {rangoSeleccionado?.to && (
-                <p>
-                  Check-out: <strong>{formatFecha(rangoSeleccionado.to)}</strong>
-                </p>
+                <p>Check-out: <strong>{formatFecha(rangoSeleccionado.to)}</strong></p>
               )}
             </div>
-            {/* --- FIN FECHAS --- */}
             <form onSubmit={handleReservar} className="reserva-form">
               <div className="form-group">
                 <label htmlFor="nombre">Nombre Completo</label>
@@ -255,7 +271,6 @@ export const Deptos = () => {
                   required
                 />
               </div>
-
               <div className="form-group">
                 <label htmlFor="personas">Cantidad de Personas</label>
                 <input
@@ -268,18 +283,45 @@ export const Deptos = () => {
                   required
                 />
               </div>
-
               {errorReserva && <p className="error-msg">{errorReserva}</p>}
               {exitoReserva && <p className="exito-msg">{exitoReserva}</p>}
-
               <button type="submit" disabled={loading} className="boton-reservar">
-                {loading ? 'Procesando...' : 'Reservar (Pendiente de Pago)'}
+                {loading ? 'Procesando...' : 'Solicitar Reserva'}
               </button>
             </form>
           </div>
         </div>
       </div>
 
+      {/* --- MODAL DE DATOS BANCARIOS --- */}
+      <Modal show={showModal} onHide={() => setShowModal(false)} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>¡Reserva Pendiente!</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          <p>Tu solicitud de reserva ha sido registrada.</p>
+          <p>Para confirmarla, transfiere la seña de <strong>${reservaInfo?.monto.toLocaleString('es-AR')}</strong> a la siguiente cuenta:</p>
+          <div className="datos-bancarios">
+            <p><strong>CBU:</strong> 0110332630033213189065</p>
+            <p><strong>Alias:</strong> APART.PLAZA.LV</p>
+            <p><strong>Titular:</strong> Graciela Andrea Zorzenón (27-17967345-8)</p>
+            <p><strong>Banco:</strong> Banco Nación</p>
+          </div>
+          <hr />
+          <p className="fw-bold">MUY IMPORTANTE:</p>
+          <p>Una vez realizada la transferencia, ENVIAR COMPROBANTE tocando el botón de Whatsapp.</p>
+          <p>Si NO envía el comprobante, NO se tendrá en cuenta la reserva.</p>
+          <p>La seña NO se reintegra.</p>
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={() => setShowModal(false)}>
+            Cerrar
+          </Button>
+          <Button variant="success" onClick={handleWhatsAppNotify}>
+            <FaWhatsapp /> Avisar por WhatsApp
+          </Button>
+        </Modal.Footer>
+      </Modal>
       <Footer />
     </>
   );

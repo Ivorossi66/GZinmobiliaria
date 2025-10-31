@@ -7,7 +7,6 @@ const Footer = () => {
   return (
     <footer className="footer">
       <div className="footer-content">
-
         {/* Logo */}
         <div className="footer-logo">
           <img src={logo} alt="GZ Inmobiliaria" />
