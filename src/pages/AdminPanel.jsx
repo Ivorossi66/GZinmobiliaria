@@ -1,9 +1,99 @@
+// src/pages/AdminPanel.jsx
 import React, { useState, useEffect } from 'react';
 import  supabase  from '../supabaseClient';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { FaChevronLeft, FaChevronRight } from 'react-icons/fa';
 import '../styles/AdminPanel.css';
+
+// Función auxiliar para fechas
+const formatFecha = (fechaStr) => {
+  const [anio, mes, dia] = fechaStr.split('-');
+  return `${dia}/${mes}/${anio}`;
+};
+
+// --- NUEVO COMPONENTE INTERNO PARA EL SLIDER DE RESERVAS ---
+const ReservasSlider = ({ reservas, onEstadoChange }) => {
+  const [pagina, setPagina] = useState(0);
+  const itemsPorPagina = 3; // Cantidad de cards a mostrar
+
+  const totalPaginas = Math.ceil(reservas.length / itemsPorPagina);
+  
+  // Calcular qué reservas mostrar
+  const indiceInicio = pagina * itemsPorPagina;
+  const indiceFin = indiceInicio + itemsPorPagina;
+  const reservasVisibles = reservas.slice(indiceInicio, indiceFin);
+
+  const avanzar = () => {
+    if (pagina < totalPaginas - 1) setPagina(pagina + 1);
+  };
+
+  const retroceder = () => {
+    if (pagina > 0) setPagina(pagina - 1);
+  };
+
+  if (reservas.length === 0) return <p className="text-muted">No hay reservas en este grupo.</p>;
+
+  return (
+    <div className="slider-container">
+      {/* Flecha Izquierda (solo si no es la primera página) */}
+      {pagina > 0 && (
+        <button onClick={retroceder} className="btn-slider-nav left">
+          <FaChevronLeft />
+        </button>
+      )}
+
+      {/* Grid de Cards */}
+      <div className="reservas-grid">
+        {reservasVisibles.map((reserva) => (
+          <div key={reserva.id_reserva} className={`reserva-card estado-${reserva.estado.toLowerCase()}`}>
+            <div className="card-header-admin">
+              <h4>Reserva #{reserva.id_reserva}</h4>
+              <span className={`estado-badge ${reserva.estado.toLowerCase()}`}>{reserva.estado}</span>
+            </div>
+            <div className="card-body-admin">
+              <p><strong>Cliente:</strong> {reserva.nombre_completo}</p>
+              <p><strong>Check-in:</strong> {formatFecha(reserva.fecha_inicio)}</p>
+              <p><strong>Check-out:</strong> {formatFecha(reserva.fecha_fin)}</p>
+              <p><strong>Personas:</strong> {reserva.cantidad_personas}</p>
+              <p><strong>Seña:</strong> ${reserva.monto_seña.toLocaleString('es-AR')}</p>
+            </div>
+            <div className="botones-accion">
+              {reserva.estado === 'Pendiente' && (
+                <button 
+                  onClick={() => onEstadoChange(reserva.id_reserva, 'Confirmada')} 
+                  className="btn-confirmar">
+                  Confirmar Pago
+                </button>
+              )}
+              <button 
+                onClick={() => onEstadoChange(reserva.id_reserva, 'Cancelada')} 
+                className="btn-cancelar">
+                Cancelar
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Flecha Derecha (solo si hay más páginas) */}
+      {pagina < totalPaginas - 1 && (
+        <button onClick={avanzar} className="btn-slider-nav right">
+          <FaChevronRight />
+        </button>
+      )}
+      
+      {/* Indicador de página (opcional) */}
+      {totalPaginas > 1 && (
+        <div className="paginacion-info">
+          Página {pagina + 1} de {totalPaginas}
+        </div>
+      )}
+    </div>
+  );
+};
+// --- FIN COMPONENTE INTERNO ---
+
 
 export const AdminPanel = () => {
   const [reservas, setReservas] = useState([]);
@@ -12,13 +102,21 @@ export const AdminPanel = () => {
   const { signOut } = useAuth();
   const navigate = useNavigate();
 
-  // --- ESTADOS PARA EL RESUMEN ---
   const [resumenData, setResumenData] = useState({});
   const [fechaVisualizacion, setFechaVisualizacion] = useState(new Date());
-
   const monthFormat = new Intl.DateTimeFormat('es-ES', { month: 'long', year: 'numeric' });
 
-  // --- LÓGICA DE PROCESAMIENTO DEL RESUMEN ---
+  useEffect(() => {
+    const originalBackground = document.body.style.backgroundImage;
+    const originalBackgroundColor = document.body.style.backgroundColor;
+    document.body.style.backgroundImage = 'none';
+    document.body.style.backgroundColor = '#f0f2f5';
+    return () => {
+      document.body.style.backgroundImage = originalBackground;
+      document.body.style.backgroundColor = originalBackgroundColor;
+    };
+  }, []);
+
   const procesarFechasOcupadas = (reservasData) => {
     const estructura = {};
     for (const reserva of reservasData) {
@@ -49,7 +147,6 @@ export const AdminPanel = () => {
     setResumenData(resumenFinal);
   };
 
-  // --- NAVEGACIÓN DE MES ---
   const cambiarMes = (direccion) => {
     const nuevaFecha = new Date(fechaVisualizacion);
     nuevaFecha.setMonth(nuevaFecha.getMonth() + direccion);
@@ -60,7 +157,6 @@ export const AdminPanel = () => {
   const mesVisualActualCap = mesVisualActualStr.charAt(0).toUpperCase() + mesVisualActualStr.slice(1);
   const datosDelMesActual = resumenData[mesVisualActualCap] || {};
 
-  // 1. Cargar todas las reservas
   async function fetchReservas() {
     setLoading(true);
     const { data, error } = await supabase
@@ -83,22 +179,13 @@ export const AdminPanel = () => {
     fetchReservas();
   }, []);
 
-  // 2. Función para cambiar estado
   const handleEstadoChange = async (id, nuevoEstado) => {
     if (nuevoEstado === 'Cancelada') {
-      if (!window.confirm('¿Seguro que quieres CANCELAR esta reserva? Se liberará la fecha.')) {
-        return;
-      }
-      const { error } = await supabase
-        .from('reservas')
-        .update({ estado: 'Cancelada' })
-        .eq('id_reserva', id);
+      if (!window.confirm('¿Seguro que quieres CANCELAR esta reserva? Se liberará la fecha.')) return;
+      const { error } = await supabase.from('reservas').update({ estado: 'Cancelada' }).eq('id_reserva', id);
       if (error) alert('Error al actualizar.'); else fetchReservas();
     } else {
-      const { error } = await supabase
-        .from('reservas')
-        .update({ estado: nuevoEstado })
-        .eq('id_reserva', id);
+      const { error } = await supabase.from('reservas').update({ estado: nuevoEstado }).eq('id_reserva', id);
       if (error) alert('Error al actualizar.'); else fetchReservas();
     }
   };
@@ -108,19 +195,13 @@ export const AdminPanel = () => {
     navigate('/login');
   };
 
-  // --- LÓGICA NUEVA: AGRUPAR LAS RESERVAS POR APARTAMENTO ---
   const reservasAgrupadas = reservas.reduce((acc, reserva) => {
     const nombreDepto = reserva.departamentos.nombre;
-    if (!acc[nombreDepto]) {
-      acc[nombreDepto] = [];
-    }
+    if (!acc[nombreDepto]) acc[nombreDepto] = [];
     acc[nombreDepto].push(reserva);
     return acc;
   }, {});
-
-  // Ordenamos las llaves para que aparezcan en orden (Apart 2, Apart 6, Apart 7)
   const nombresDeptosOrdenados = Object.keys(reservasAgrupadas).sort();
-
 
   if (loading) return <p className="loading-text">Cargando panel...</p>;
   if (error) return <p className="error-msg">{error}</p>;
@@ -129,19 +210,15 @@ export const AdminPanel = () => {
     <div className="admin-container">
       <div className="admin-header">
         <h1>Panel de Administración</h1>
-        <button onClick={handleLogout} className="boton-logout">
-          Cerrar Sesión
-        </button>
+        <button onClick={handleLogout} className="boton-logout">Cerrar Sesión</button>
       </div>
 
-      {/* --- RESUMEN MENSUAL --- */}
       <div className="resumen-container">
         <div className="resumen-header">
           <button onClick={() => cambiarMes(-1)} className="btn-mes-nav"><FaChevronLeft /></button>
           <h3>Resumen: {mesVisualActualCap}</h3>
           <button onClick={() => cambiarMes(1)} className="btn-mes-nav"><FaChevronRight /></button>
         </div>
-
         <div className="resumen-contenido">
           {Object.keys(datosDelMesActual).length === 0 ? (
             <p className="text-muted text-center">No hay días ocupados en este mes.</p>
@@ -150,9 +227,7 @@ export const AdminPanel = () => {
               <div key={nombreDepto} className="depto-resumen-fila">
                 <span className="depto-nombre-label">{nombreDepto}:</span>
                 <div className="dias-lista">
-                  {dias.map(dia => (
-                    <span key={dia} className="dia-ocupado">{dia}</span>
-                  ))}
+                  {dias.map(dia => <span key={dia} className="dia-ocupado">{dia}</span>)}
                 </div>
               </div>
             ))
@@ -162,10 +237,7 @@ export const AdminPanel = () => {
 
       <hr className="admin-divider" />
 
-      <h2>Listado de Reservas</h2>
-      <br />
-      
-      {/* --- LISTADO AGRUPADO POR APARTAMENTO --- */}
+      <h2>Listado de Reservas Activas</h2>
       
       {nombresDeptosOrdenados.length === 0 ? (
         <p className="text-center">No hay reservas activas.</p>
@@ -174,48 +246,15 @@ export const AdminPanel = () => {
           <div key={nombreDepto} className="seccion-depto">
             <h3 className="titulo-seccion-depto">{nombreDepto}</h3>
             
-            <div className="reservas-grid">
-              {reservasAgrupadas[nombreDepto].map((reserva) => (
-                <div key={reserva.id_reserva} className={`reserva-card estado-${reserva.estado.toLowerCase()}`}>
-                  <div className="card-header-admin">
-                    <h4>Reserva #{reserva.id_reserva}</h4>
-                    {/* Ya no necesitamos el badge aquí porque el título de sección lo dice */}
-                    <span className={`estado-badge ${reserva.estado.toLowerCase()}`}>{reserva.estado}</span>
-                  </div>
-                  <div className="card-body-admin">
-                    <p><strong>Cliente:</strong> {reserva.nombre_completo}</p>
-                    <p><strong>Check-in:</strong> {formatFecha(reserva.fecha_inicio)}</p>
-                    <p><strong>Check-out:</strong> {formatFecha(reserva.fecha_fin)}</p>
-                    <p><strong>Personas:</strong> {reserva.cantidad_personas}</p>
-                    <p><strong>Seña:</strong> ${reserva.monto_seña.toLocaleString('es-AR')}</p>
-                  </div>
-                  
-                  <div className="botones-accion">
-                    {reserva.estado === 'Pendiente' && (
-                      <button 
-                        onClick={() => handleEstadoChange(reserva.id_reserva, 'Confirmada')}
-                        className="btn-confirmar">
-                        Confirmar Pago
-                      </button>
-                    )}
-                    <button 
-                      onClick={() => handleEstadoChange(reserva.id_reserva, 'Cancelada')}
-                      className="btn-cancelar">
-                      Cancelar
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
+            {/* AQUÍ USAMOS EL NUEVO SLIDER EN LUGAR DE MAPEAR DIRECTAMENTE */}
+            <ReservasSlider 
+              reservas={reservasAgrupadas[nombreDepto]} 
+              onEstadoChange={handleEstadoChange} 
+            />
+            
           </div>
         ))
       )}
-
     </div>
   );
 };
-
-const formatFecha = (fechaStr) => {
-    const [anio, mes, dia] = fechaStr.split('-');
-    return `${dia}/${mes}/${anio}`;
-}

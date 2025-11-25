@@ -273,3 +273,89 @@ h2 {
 }
 .estado-badge.pendiente { background-color: #ffc107; color: #333; }
 .estado-badge.confirmada { background-color: #28a745; }
+
+/* ESTILOS PARA EL SLIDER DE RESERVAS */
+.slider-container {
+  position: relative;
+  padding: 0 40px; /* Espacio para las flechas */
+}
+
+.btn-slider-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background-color: white;
+  border: 1px solid #ddd;
+  color: var(--colorSecundario);
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  z-index: 10;
+  transition: all 0.2s;
+}
+
+.btn-slider-nav:hover {
+  background-color: var(--colorSecundario);
+  color: white;
+}
+
+.btn-slider-nav.left {
+  left: 0;
+}
+
+.btn-slider-nav.right {
+  right: 0;
+}
+
+.paginacion-info {
+  text-align: center;
+  margin-top: 10px;
+  font-size: 0.85rem;
+  color: #777;
+}
+
+@media (max-width: 768px) {
+  .slider-container {
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .reservas-grid {
+    order: 1;
+    width: 100%;
+    margin-bottom: 15px;
+    grid-template-columns: 1fr; 
+  }
+
+  .paginacion-info {
+    order: 2;
+    margin-bottom: 15px;
+    font-weight: bold;
+  }
+
+  .btn-slider-nav {
+    display: inline-flex;
+    position: static; 
+    transform: none; 
+    order: 3; 
+    margin: 0 15px; 
+    width: 50px;
+    height: 50px;
+    background-color: var(--colorSecundario);
+    color: white;
+    border: none;
+    font-size: 1.2rem;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+  }
+
+  .btn-slider-nav:hover {
+    background-color: var(--colorPrincipal);
+  }
+}
