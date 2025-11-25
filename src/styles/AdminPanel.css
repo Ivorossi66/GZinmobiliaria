@@ -1,99 +1,275 @@
 .admin-container {
-  max-width: 1000px;
-  margin: 30px auto;
-  padding: 15px;
+  max-width: 1200px; 
+  margin: 40px auto;
+  padding: 20px;
+  min-height: 80vh;
 }
+
 .admin-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 30px;
 }
+
+.admin-header h1 {
+  color: var(--colorPrincipal);
+  margin: 0;
+}
+
 .boton-logout {
-  background-color: #aaa;
+  background-color: #dc3545;
   color: white;
   border: none;
-  padding: 10px 15px;
-  border-radius: 8px;
+  padding: 10px 20px;
+  border-radius: 5px;
   cursor: pointer;
-  font-weight: 600;
-}
-.boton-logout:hover { background-color: #888; }
-.reservas-lista {
-  display: grid;
-  gap: 20px;
-}
-.reserva-card {
-  border: 1px solid #ddd;
-  padding: 20px;
-  border-radius: 8px;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-}
-.botones-accion { display: flex; gap: 10px; margin-top: 15px; }
-.btn-confirmar {
-  background-color: #2EC4B6;
-  color: white;
-  border: none;
-  padding: 8px 12px;
-  border-radius: 6px;
-  cursor: pointer;
-}
-.btn-cancelar {
-  background-color: #e63946;
-  color: white;
-  border: none;
-  padding: 8px 12px;
-  border-radius: 6px;
-  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.2s;
 }
 
-.estado-pendiente { border-left: 5px solid #FF9F1C; }
-.estado-confirmada { border-left: 5px solid #2EC4B6; } 
-.estado-cancelada { border-left: 5px solid #aaa; }
+.boton-logout:hover {
+  background-color: #c82333;
+}
 
-.resumen-mensual {
-  background-color: #f8f9fa;
-  border: 1px solid #ddd;
-  border-radius: 8px;
-  padding: 20px;
-  margin-bottom: 30px;
+/* --- NUEVOS ESTILOS: RESUMEN MENSUAL CON NAVEGACIÓN --- */
+.resumen-container {
+  background-color: #fff;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  overflow: hidden; /* Para que el header quede bien */
+  margin-bottom: 40px;
 }
-.mes-resumen {
-  margin-bottom: 15px;
+
+.resumen-header {
+  background-color: var(--colorPrincipal);
+  color: white;
+  padding: 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
-.mes-resumen h4 {
-  border-bottom: 2px solid var(--colorPrincipal);
-  padding-bottom: 5px;
+
+.resumen-header h3 {
+  margin: 0;
+  font-size: 1.3rem;
+}
+
+.btn-mes-nav {
+  background: none;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  color: white;
   font-size: 1.2rem;
-  font-weight: 600;
-  color: var(--colorSecundario);
+  padding: 5px 12px;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
+
+.btn-mes-nav:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+  border-color: white;
+}
+
+.resumen-contenido {
+  padding: 20px;
+}
+
+.depto-resumen-fila {
+  display: flex;
+  align-items: center;
+  margin-bottom: 15px;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 10px;
+}
+.depto-resumen-fila:last-child {
+  border-bottom: none;
+}
+
+.depto-nombre-label {
+  font-weight: 700;
+  color: var(--colorSecundario);
+  min-width: 100px; 
+  margin-right: 15px;
+}
+
 .dias-lista {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin-top: 10px;
 }
+
 .dia-ocupado {
   background-color: var(--colorSecundario);
   color: white;
-  min-width: 35px;
-  text-align: center;
-  padding: 5px 10px;
-  border-radius: 20px;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
   font-weight: 600;
   font-size: 0.9rem;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
-/* Divisor visual */
 .admin-divider {
-  margin: 30px 0;
-  border-top: 2px solid #eee;
+  margin: 40px 0;
+  border-top: 1px solid #ddd;
 }
 
-.reservas-lista h2 {
-  font-size: 1.5rem;
-  font-weight: 600;
-  color: var(--colorSecundario);
-  margin-bottom: 20px;
+
+/* --- GRILLA DE RESERVAS --- */
+
+h2 {
+    color: var(--colorSecundario);
+    margin-bottom: 25px;
 }
+
+/* Contenedor Grid */
+.reservas-grid {
+  display: grid;
+  grid-template-columns: 1fr; 
+  gap: 25px;
+}
+
+/* Media Query para PC (pantallas grandes) */
+@media (min-width: 992px) {
+  .reservas-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.reserva-card {
+  background-color: #fff;
+  border-radius: 10px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.2s;
+  border-left: 5px solid #ddd; /* Borde por defecto */
+}
+
+.reserva-card:hover {
+    transform: translateY(-5px);
+}
+
+/* Colores según estado para el borde izquierdo */
+.reserva-card.estado-pendiente { border-left-color: #ffc107; }
+.reserva-card.estado-confirmada { border-left-color: #28a745; }
+
+.card-header-admin {
+    padding: 15px;
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.card-header-admin h4 {
+    margin: 0;
+    font-size: 1.1rem;
+    color: #333;
+}
+
+.badge-depto {
+    background-color: var(--colorPrincipal);
+    color: white;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.card-body-admin {
+    padding: 20px;
+    flex-grow: 1; 
+}
+
+.card-body-admin p {
+    margin-bottom: 8px;
+    font-size: 0.95rem;
+    color: #555;
+}
+.card-body-admin strong {
+    color: #333;
+}
+
+.estado-tag {
+    margin-top: 15px !important;
+    padding-top: 10px;
+    border-top: 1px solid #eee;
+    font-weight: bold;
+}
+.estado-tag.pendiente { color: #d39e00; }
+.estado-tag.confirmada { color: #28a745; }
+
+
+.botones-accion {
+  padding: 15px;
+  background-color: #f8f9fa;
+  border-top: 1px solid #eee;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.btn-confirmar, .btn-cancelar {
+  padding: 10px;
+  border: none;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  width: 100%;
+  transition: background-color 0.2s;
+}
+
+.btn-confirmar {
+  background-color: #28a745;
+  color: white;
+}
+.btn-confirmar:hover { background-color: #218838; }
+
+.btn-cancelar {
+  background-color: #dc3545;
+  color: white;
+}
+.btn-cancelar:hover { background-color: #c82333; }
+
+.loading-text, .error-msg {
+    text-align: center;
+    margin-top: 50px;
+    font-size: 1.2rem;
+}
+.error-msg { color: #dc3545; }
+
+/* --- Estilos para la separación por Depto --- */
+.seccion-depto {
+  margin-bottom: 50px; 
+}
+
+.titulo-seccion-depto {
+  font-size: 1.4rem;
+  color: rgb(0, 0, 0);
+  border-bottom: 2px solid #eee;
+  padding-bottom: 10px;
+  margin-bottom: 20px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.estado-badge {
+  font-size: 0.75rem;
+  padding: 3px 8px;
+  border-radius: 12px;
+  color: white;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+.estado-badge.pendiente { background-color: #ffc107; color: #333; }
+.estado-badge.confirmada { background-color: #28a745; }
