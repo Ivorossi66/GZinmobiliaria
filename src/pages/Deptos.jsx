@@ -192,7 +192,7 @@ export const Deptos = () => {
 
   // --- FUNCIÓN DE WHATSAPP ---
   const handleWhatsAppNotify = () => {
-    const adminNumber = '5493516878172';
+    const adminNumber = '5493533407784';
 
     const mensaje = `¡Hola! Acabo de hacer una reserva a nombre de ${reservaInfo.nombre} para el ${reservaInfo.depto} (del ${reservaInfo.fechaInicio} al ${reservaInfo.fechaFin}). Ya te envío el comprobante de la seña de $${reservaInfo.monto.toLocaleString('es-AR')}.`;
 

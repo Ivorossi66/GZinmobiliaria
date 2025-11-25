@@ -15,11 +15,10 @@ const formatFecha = (fechaStr) => {
 // --- NUEVO COMPONENTE INTERNO PARA EL SLIDER DE RESERVAS ---
 const ReservasSlider = ({ reservas, onEstadoChange }) => {
   const [pagina, setPagina] = useState(0);
-  const itemsPorPagina = 3; // Cantidad de cards a mostrar
+  const itemsPorPagina = 3; 
 
   const totalPaginas = Math.ceil(reservas.length / itemsPorPagina);
   
-  // Calcular qué reservas mostrar
   const indiceInicio = pagina * itemsPorPagina;
   const indiceFin = indiceInicio + itemsPorPagina;
   const reservasVisibles = reservas.slice(indiceInicio, indiceFin);
@@ -36,7 +35,6 @@ const ReservasSlider = ({ reservas, onEstadoChange }) => {
 
   return (
     <div className="slider-container">
-      {/* Flecha Izquierda (solo si no es la primera página) */}
       {pagina > 0 && (
         <button onClick={retroceder} className="btn-slider-nav left">
           <FaChevronLeft />
@@ -76,14 +74,12 @@ const ReservasSlider = ({ reservas, onEstadoChange }) => {
         ))}
       </div>
 
-      {/* Flecha Derecha (solo si hay más páginas) */}
       {pagina < totalPaginas - 1 && (
         <button onClick={avanzar} className="btn-slider-nav right">
           <FaChevronRight />
         </button>
       )}
       
-      {/* Indicador de página (opcional) */}
       {totalPaginas > 1 && (
         <div className="paginacion-info">
           Página {pagina + 1} de {totalPaginas}
@@ -93,7 +89,6 @@ const ReservasSlider = ({ reservas, onEstadoChange }) => {
   );
 };
 // --- FIN COMPONENTE INTERNO ---
-
 
 export const AdminPanel = () => {
   const [reservas, setReservas] = useState([]);
