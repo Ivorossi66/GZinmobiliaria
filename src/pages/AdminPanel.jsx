@@ -241,7 +241,6 @@ export const AdminPanel = () => {
           <div key={nombreDepto} className="seccion-depto">
             <h3 className="titulo-seccion-depto">{nombreDepto}</h3>
             
-            {/* AQUÍ USAMOS EL NUEVO SLIDER EN LUGAR DE MAPEAR DIRECTAMENTE */}
             <ReservasSlider 
               reservas={reservasAgrupadas[nombreDepto]} 
               onEstadoChange={handleEstadoChange} 
