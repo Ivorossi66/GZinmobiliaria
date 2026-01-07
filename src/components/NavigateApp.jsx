@@ -14,7 +14,7 @@ export const NavigateApp = () => {
   };
 
   return (
-    <Navbar expand="lg">
+    <Navbar expand="lg" variant='dark'>
       <Container fluid>
         <img src={logo} alt="Logo GZ Inmobiliaria" className="navbar-logo" />
         <Navbar.Brand className="navBar-titulo">GZ Inmobiliaria</Navbar.Brand>
