@@ -240,6 +240,9 @@ export const Deptos = () => {
             </>
           )}
 
+          <h3>Incluye Ropa Blanca</h3>
+          <p>{depto.blanco}</p>
+
           <h3>Seña</h3>
           <p>{depto.senia}</p>
 

@@ -50,7 +50,7 @@ export const NavigateApp = () => {
             ) : (
               // Si NO está logueado
               <NavLink to="/login" className="nav-link">
-                Admin
+                Iniciar Sesión
               </NavLink>
             )}
           </Nav>

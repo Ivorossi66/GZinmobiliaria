@@ -73,36 +73,57 @@
   font-size: 1.2rem;
 }
 
-/* --- INFORMACIÓN --- */
+/* --- INFORMACIÓN (ACTUALIZADO: DISEÑO TIPO TARJETA) --- */
 .depto-info {
   margin-top: 40px;
   text-align: left;
+  /* Estilo Tarjeta */
+  background-color: #ffffff;
+  padding: 35px;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  color: #4a4a4a;
+  line-height: 1.7;
+  margin-bottom: 40px;
 }
 
 .depto-info h3 {
-  margin: 20px 0 10px;
+  margin: 30px 0 15px;
   color: var(--colorSecundario);
-  font-size: 1.5rem;
+  font-size: 1.4rem;
+  font-weight: 700;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #f0f2f5; /* Línea separadora sutil */
+}
+
+/* El primer título no lleva margen superior extra */
+.depto-info h3:first-of-type {
+  margin-top: 0;
 }
 
 .depto-info p {
   font-size: 1rem;
-  color: #000000;
-  line-height: 1.5;
+  color: #4a4a4a;
+  line-height: 1.6;
   font-weight: 500;
+  margin-bottom: 20px;
 }
 
 /* --- SERVICIOS --- */
 .servicios-lista {
   list-style: none;
   padding: 0;
+  margin: 0;
 }
 
 .servicios-lista li {
-  margin-bottom: 6px;
-  padding-left: 15px;
+  margin-bottom: 10px;
+  padding-left: 25px; /* Más espacio para el check */
   position: relative;
   font-size: 1rem;
+  display: flex;
+  align-items: center;
 }
 
 .servicios-lista li::before {
@@ -110,8 +131,9 @@
   color: var(--colorTerciario);
   position: absolute;
   left: 0;
-  top: 0;
+  top: 2px;
   font-size: 1.1rem;
+  font-weight: bold;
 }
 
 /* --- MAPA --- */
@@ -119,9 +141,10 @@
   position: relative;
   width: 100%;
   height: 550px; 
-  border-radius: 16px;
+  border-radius: 12px;
   overflow: hidden;
 }
+
 
 .map-container:hover {
   transform: scale(1.01);
@@ -129,14 +152,15 @@
 }
 
 
-/* == INICIO: ESTILOS RESERVA Y CALENDARIO (NUEVO) == */
+/* == INICIO: ESTILOS RESERVA Y CALENDARIO == */
 .reserva-container {
   display: flex;
   flex-direction: column;
   align-items: center;
   margin-top: 40px;
   padding-top: 30px;
-  border-top: 4px solid var(--colorQuinto);
+  /* Quitamos el borde superior porque ya lo delimita la tarjeta */
+  /* border-top: 4px solid var(--colorQuinto); */ 
 }
 
 .reserva-container h3 { color: var(--colorSecundario); }
@@ -246,7 +270,10 @@
   .depto-precio h3 { font-size: 1.4rem; }
   .precio-item { flex-wrap: wrap; padding: 10px 16px; }
   .precio-item span { font-size: 1rem; }
-  .depto-info h3 { font-size: 1.1rem; }
+  
+  /* Ajuste de tarjeta en tablet */
+  .depto-info { padding: 25px; }
+  .depto-info h3 { font-size: 1.2rem; }
   .depto-info p { font-size: 0.95rem;}
 }
 
@@ -287,6 +314,8 @@
   }
   .precio-item span { font-size: 0.95rem; }
   .precio-item svg { font-size: 0.95rem; }
-  .depto-info { text-align: center; }
+  
+  /* Ajuste tarjeta en celular */
+  .depto-info { padding: 20px; }
   .depto-info h3 { margin: 15px 0 8px; }
 }

@@ -44,7 +44,8 @@ export const deptos = [
     descripcion: "Estar-Comedor con sillón cama / Ante-Baño / Baño / 2 patios de luz / 2 dormitorios",
     horario: "Check In: 13:00 hs – Check Out: 10:00 hs",
     fumar: "Prohibido fumar",
-    imagenes: [apart2img1, apart2img2, apart2img3, apart2img4, apart2img5, apart2img6, apart2img7, apart2img8, apart2img9]
+    imagenes: [apart2img1, apart2img2, apart2img3, apart2img4, apart2img5, apart2img6, apart2img7, apart2img8, apart2img9],
+    blanco: "Toallas"
   },
   {
     id: "6",
@@ -64,7 +65,8 @@ export const deptos = [
     descripcion: "Estar-Comedor / Baño / Cocina integrada al comedor / Balcón con vista al complejo / Dormitorio con cama Matrimonial / 2 camas individuales / 1 habitación",
     horario: "Check In: 13:00 hs – Check Out: 10:00 hs",
     fumar: "Prohibido fumar",
-    imagenes: [apart6img1, apart6img2, apart6img3, apart6img4, apart6img5, apart6img6, apart6img7]
+    imagenes: [apart6img1, apart6img2, apart6img3, apart6img4, apart6img5, apart6img6, apart6img7],
+    blanco: "Toallas"
   },
   {
     id: "7",
@@ -84,6 +86,7 @@ export const deptos = [
     descripcion: "Estar-Comedor con sillón cama / Baño / Cocina separada / Patio de Luz / Dormitorio con cama Matrimonial / 1 habitación",
     horario: "Check In: 13:00 hs – Check Out: 10:00 hs",
     fumar: "Prohibido fumar",
-    imagenes: [apart7img1, apart7img2, apart7img3, apart7img4, apart7img5, apart7img6, apart7img7, apart7img8]
+    imagenes: [apart7img1, apart7img2, apart7img3, apart7img4, apart7img5, apart7img6, apart7img7, apart7img8],
+    blanco: "Toallas"
   },
 ];
