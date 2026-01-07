@@ -12,6 +12,7 @@ import { DayPicker } from 'react-day-picker';
 import 'react-day-picker/dist/style.css';
 import supabase from '../supabaseClient';
 import { Modal, Button } from 'react-bootstrap';
+import { es } from 'date-fns/locale';
 
 // --- Función para formatear fechas a d-m-a ---
 const formatFecha = (date) => {
@@ -280,6 +281,7 @@ export const Deptos = () => {
               onSelect={setRangoSeleccionado}
               disabled={[...diasOcupados, { before: new Date() }]}
               numberOfMonths={1}
+              locale={es}
             />
             <div className="fecha-seleccionada">
               {rangoSeleccionado?.from && (
