@@ -10,7 +10,7 @@ import { IoPersonSharp } from 'react-icons/io5';
 import { FaWhatsapp } from 'react-icons/fa';
 import { DayPicker } from 'react-day-picker';
 import 'react-day-picker/dist/style.css';
-import supabase from '../supabaseClient';
+import  supabase  from '../supabaseClient';
 import { Modal, Button } from 'react-bootstrap';
 import { es } from 'date-fns/locale';
 
@@ -48,7 +48,8 @@ export const Deptos = () => {
         .from('reservas')
         .select('fecha_inicio, fecha_fin')
         .eq('id_apartamento', parseInt(id))
-        .in('estado', ['Confirmada', 'Pendiente']);
+        // CAMBIO IMPORTANTE: Trae todo lo que NO esté cancelado (incluye 'Bloqueado')
+        .neq('estado', 'Cancelada'); 
 
       if (error) {
         console.error('Error al cargar reservas:', error);
@@ -57,6 +58,7 @@ export const Deptos = () => {
         const rangosOcupados = data.map((reserva) => {
           const fromDate = new Date(reserva.fecha_inicio + 'T00:00:00');
           const toDate = new Date(reserva.fecha_fin + 'T00:00:00');
+          // Restamos un día al final para visualización correcta
           toDate.setDate(toDate.getDate() - 1);
           return { from: fromDate, to: toDate };
         });
@@ -124,12 +126,13 @@ export const Deptos = () => {
     const fecha_inicio_str = rangoSeleccionado.from.toISOString().split('T')[0];
     const fecha_fin_str = rangoSeleccionado.to.toISOString().split('T')[0];
 
-    // 2. VERIFICACIÓN DE OVERLAP
+    // 2. VERIFICACIÓN DE OVERLAP (Conflicto de fechas)
     const { data: conflicto, error: errorConflicto } = await supabase
       .from('reservas')
       .select('id_reserva')
       .eq('id_apartamento', parseInt(id))
-      .in('estado', ['Confirmada', 'Pendiente'])
+      // CAMBIO IMPORTANTE: Verifica contra cualquier cosa que no esté cancelada
+      .neq('estado', 'Cancelada')
       .lt('fecha_inicio', fecha_fin_str)
       .gt('fecha_fin', fecha_inicio_str);
 
@@ -141,7 +144,7 @@ export const Deptos = () => {
     }
 
     if (conflicto && conflicto.length > 0) {
-      setErrorReserva('Esas fechas (o parte de ellas) acaban de ser reservadas. Por favor, actualiza la página y elige otras.');
+      setErrorReserva('Esas fechas (o parte de ellas) no están disponibles. Por favor, actualiza la página.');
       setLoading(false);
       return;
     }

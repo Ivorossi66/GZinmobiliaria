@@ -359,3 +359,258 @@ h2 {
     background-color: var(--colorPrincipal);
   }
 }
+
+/* --- SECCIÓN DE BLOQUEOS MANUALES (DISEÑO MEJORADO) --- */
+.bloqueo-section {
+  margin-bottom: 30px;
+  animation: fadeIn 0.4s ease;
+}
+
+/* Botón principal para abrir el formulario */
+.btn-crear-bloqueo {
+  background-color: var(--colorPrincipal); /* Verde Azulado */
+  color: white;
+  border: none;
+  padding: 14px 25px;
+  border-radius: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(46, 196, 182, 0.3); /* Sombra sutil del color principal */
+  width: 100%;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.btn-crear-bloqueo:hover {
+  background-color: var(--colorSecundario); /* Oscuro al pasar el mouse */
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(13, 19, 33, 0.25);
+}
+
+/* Tarjeta del Formulario */
+.form-bloqueo-card {
+  background: white;
+  padding: 25px;
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+  border: 1px solid rgba(0,0,0,0.05);
+  border-top: 5px solid var(--colorTerciario); /* Borde naranja arriba para destacar */
+  margin-top: 20px;
+}
+
+.form-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  border-bottom: 2px solid var(--colorQuinto); /* Línea suave */
+  padding-bottom: 10px;
+}
+
+.form-header h3 {
+  margin: 0;
+  color: var(--colorSecundario);
+  font-size: 1.3rem;
+  font-weight: 700;
+}
+
+.btn-close-form {
+  background: var(--colorQuinto);
+  border: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  color: var(--colorSecundario);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.btn-close-form:hover {
+  background-color: #ffcccc;
+  color: #d9534f;
+}
+
+/* Grid del formulario */
+.form-bloqueo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 20px;
+  align-items: end;
+}
+
+/* Inputs y Labels */
+.input-group label {
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: var(--colorSecundario);
+  display: block;
+}
+
+.input-group input, 
+.input-group select {
+  width: 100%;
+  padding: 12px;
+  border: 2px solid #eee;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 0.95rem;
+  transition: border-color 0.3s;
+  box-sizing: border-box;
+}
+
+.input-group input:focus, 
+.input-group select:focus {
+  outline: none;
+  border-color: var(--colorPrincipal); /* Borde verde al escribir */
+  background-color: #fafafa;
+}
+
+/* --- Selector de Días (Lunes, Martes...) --- */
+.dias-semana-group {
+  grid-column: 1 / -1; /* Ocupa todo el ancho en móviles */
+}
+
+@media (min-width: 768px) {
+  .dias-semana-group {
+    grid-column: span 2; 
+  }
+}
+
+.dias-checkboxes {
+  display: flex;
+  gap: 10px;
+  margin-top: 5px;
+  flex-wrap: wrap;
+}
+
+.dia-circle {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 2px solid #eee;
+  background-color: white;
+  color: #777;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.dia-circle:hover {
+  border-color: var(--colorPrincipal);
+  color: var(--colorPrincipal);
+  background-color: var(--colorQuinto);
+}
+
+.dia-circle.active {
+  background-color: var(--colorPrincipal); /* Fondo verde activo */
+  color: white;
+  border-color: var(--colorPrincipal);
+  transform: scale(1.1); /* Efecto pop */
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+/* Botón Guardar */
+.btn-guardar-bloqueo {
+  background-color: var(--colorTerciario); /* Naranja fuerte */
+  color: white;
+  border: none;
+  padding: 12px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.3s;
+  height: 48px; /* Altura cómoda */
+  margin-top: 10px;
+}
+
+.btn-guardar-bloqueo:hover {
+  background-color: #e08b17; /* Un poco más oscuro */
+  box-shadow: 0 4px 10px rgba(255, 159, 28, 0.3);
+}
+
+/* --- ESTILOS TARJETA DE BLOQUEO (EN LA LISTA) --- */
+.reserva-card.estado-bloqueado {
+  border-left: 5px solid var(--colorSecundario); /* Borde azul oscuro para bloqueos */
+  background-color: #fcfcfc;
+}
+
+.estado-badge.bloqueado {
+  background-color: var(--colorSecundario);
+  color: white;
+  font-size: 0.7rem;
+  letter-spacing: 0.5px;
+}
+
+/* --- RESPONSIVE FIXES PARA ADMIN PANEL --- */
+
+@media (max-width: 768px) {
+  /* 1. Ajustar el contenedor principal */
+  .admin-container {
+    padding: 15px;
+    width: 100%;
+    overflow-x: hidden; /* Evita scroll horizontal indeseado */
+  }
+
+  /* 2. Encabezado apilado */
+  .admin-header {
+    flex-direction: column;
+    gap: 15px;
+    text-align: center;
+  }
+
+  /* 3. Formulario de bloqueo en una sola columna */
+  .form-bloqueo-grid {
+    grid-template-columns: 1fr !important; /* Fuerza 1 sola columna */
+    gap: 10px;
+  }
+  
+  .btn-crear-bloqueo {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* 4. Tarjetas de Reservas (Slider) */
+  .reservas-grid {
+    grid-template-columns: 1fr !important; /* 1 tarjeta por fila */
+    gap: 15px;
+  }
+
+  /* Botones del slider más grandes para tocar con el dedo */
+  .btn-slider-nav {
+    width: 40px;
+    height: 40px;
+    font-size: 1.2rem;
+  }
+  
+  /* Ajuste de textos dentro de la tarjeta */
+  .reserva-card {
+    min-height: auto; /* Que la altura se ajuste al contenido */
+  }
+
+  /* 5. Selector de días (círculos) */
+  .dias-checkboxes {
+    justify-content: center; /* Centrados */
+  }
+  
+  .dia-circle {
+    width: 32px;
+    height: 32px;
+    font-size: 0.75rem;
+  }
+}
