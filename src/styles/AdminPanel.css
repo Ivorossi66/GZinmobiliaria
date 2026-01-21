@@ -564,10 +564,10 @@ h2 {
   .admin-container {
     padding: 15px;
     width: 100%;
-    overflow-x: hidden; /* Evita scroll horizontal indeseado */
+    overflow-x: hidden;
   }
 
-  /* 2. Encabezado apilado */
+  /* 2. Encabezado  */
   .admin-header {
     flex-direction: column;
     gap: 15px;
@@ -576,7 +576,7 @@ h2 {
 
   /* 3. Formulario de bloqueo en una sola columna */
   .form-bloqueo-grid {
-    grid-template-columns: 1fr !important; /* Fuerza 1 sola columna */
+    grid-template-columns: 1fr !important; 
     gap: 10px;
   }
   
@@ -587,7 +587,7 @@ h2 {
 
   /* 4. Tarjetas de Reservas (Slider) */
   .reservas-grid {
-    grid-template-columns: 1fr !important; /* 1 tarjeta por fila */
+    grid-template-columns: 1fr !important; 
     gap: 15px;
   }
 
@@ -600,12 +600,12 @@ h2 {
   
   /* Ajuste de textos dentro de la tarjeta */
   .reserva-card {
-    min-height: auto; /* Que la altura se ajuste al contenido */
+    min-height: auto; 
   }
 
   /* 5. Selector de días (círculos) */
   .dias-checkboxes {
-    justify-content: center; /* Centrados */
+    justify-content: center; 
   }
   
   .dia-circle {

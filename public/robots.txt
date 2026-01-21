@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+
+# Bloqueamos el acceso a zonas privadas
+Disallow: /admin
+Disallow: /login
+
+# Le decimos dónde está el mapa
+Sitemap: https://gzinmobiliarialv.netlify.app/sitemap.xml
