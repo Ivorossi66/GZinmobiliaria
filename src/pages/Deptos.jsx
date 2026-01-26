@@ -12,7 +12,12 @@ import { DayPicker } from 'react-day-picker';
 import 'react-day-picker/dist/style.css';
 import  supabase  from '../supabaseClient';
 import { Modal, Button } from 'react-bootstrap';
-import { es } from 'date-fns/locale';
+
+// --- CORRECCIÓN AQUÍ ---
+// 1. Importamos la función de cálculo desde la raíz
+import { areIntervalsOverlapping } from 'date-fns';
+// 2. Importamos el idioma desde su carpeta específica
+import { es } from 'date-fns/locale'; 
 
 // --- Función para formatear fechas a d-m-a ---
 const formatFecha = (date) => {
@@ -48,7 +53,6 @@ export const Deptos = () => {
         .from('reservas')
         .select('fecha_inicio, fecha_fin')
         .eq('id_apartamento', parseInt(id))
-        // CAMBIO IMPORTANTE: Trae todo lo que NO esté cancelado (incluye 'Bloqueado')
         .neq('estado', 'Cancelada'); 
 
       if (error) {
@@ -58,7 +62,6 @@ export const Deptos = () => {
         const rangosOcupados = data.map((reserva) => {
           const fromDate = new Date(reserva.fecha_inicio + 'T00:00:00');
           const toDate = new Date(reserva.fecha_fin + 'T00:00:00');
-          // Restamos un día al final para visualización correcta
           toDate.setDate(toDate.getDate() - 1);
           return { from: fromDate, to: toDate };
         });
@@ -69,6 +72,30 @@ export const Deptos = () => {
 
     getReservas();
   }, [id]);
+
+  // --- FUNCIÓN DE VALIDACIÓN (CORREGIDA) ---
+  const handleSelectRange = (range) => {
+    setErrorReserva(''); 
+
+    if (!range || !range.from || !range.to) {
+       setRangoSeleccionado(range);
+       return;
+    }
+
+    const hayConflicto = diasOcupados.some((ocupado) => {
+       return areIntervalsOverlapping(
+          { start: range.from, end: range.to },
+          { start: ocupado.from, end: ocupado.to }
+       );
+    });
+
+    if (hayConflicto) {
+       setErrorReserva('⚠️ No se pueden seleccionar estas fechas porque hay días ocupados en el medio.');
+       setRangoSeleccionado(undefined); 
+    } else {
+       setRangoSeleccionado(range);
+    }
+  };
 
   // Manejo de la reserva
   const handleReservar = async (e) => {
@@ -90,7 +117,6 @@ export const Deptos = () => {
     // --- 1. LÓGICA DE CÁLCULO DE SEÑA ---
     let montoSeniaNum = 0;
     try {
-      // A. Calcular número de noches
       const fechaInicio = new Date(rangoSeleccionado.from);
       const fechaFin = new Date(rangoSeleccionado.to);
       const tiempoDiferencia = fechaFin.getTime() - fechaInicio.getTime();
@@ -102,7 +128,6 @@ export const Deptos = () => {
         return;
       }
 
-      // B. Encontrar el precio por noche
       const precioInfo = depto.precio.find(p => p.personas === parseInt(cantidadPersonas));
       if (!precioInfo) {
         setErrorReserva(`No se encontró un precio para ${cantidadPersonas} personas.`);
@@ -110,8 +135,6 @@ export const Deptos = () => {
         return;
       }
       const precioPorNoche = precioInfo.precio;
-
-      // C. Calcular seña (50% del total)
       const montoTotal = precioPorNoche * numeroDeNoches;
       montoSeniaNum = montoTotal * 0.5;
 
@@ -121,17 +144,15 @@ export const Deptos = () => {
       setLoading(false);
       return;
     }
-    // --- FIN DE LÓGICA DE CÁLCULO ---
 
     const fecha_inicio_str = rangoSeleccionado.from.toISOString().split('T')[0];
     const fecha_fin_str = rangoSeleccionado.to.toISOString().split('T')[0];
 
-    // 2. VERIFICACIÓN DE OVERLAP (Conflicto de fechas)
+    // 2. VERIFICACIÓN DE OVERLAP FINAL
     const { data: conflicto, error: errorConflicto } = await supabase
       .from('reservas')
       .select('id_reserva')
       .eq('id_apartamento', parseInt(id))
-      // CAMBIO IMPORTANTE: Verifica contra cualquier cosa que no esté cancelada
       .neq('estado', 'Cancelada')
       .lt('fecha_inicio', fecha_fin_str)
       .gt('fecha_fin', fecha_inicio_str);
@@ -144,7 +165,7 @@ export const Deptos = () => {
     }
 
     if (conflicto && conflicto.length > 0) {
-      setErrorReserva('Esas fechas (o parte de ellas) no están disponibles. Por favor, actualiza la página.');
+      setErrorReserva('Ups! Esas fechas acaban de ser ocupadas. Actualiza la página.');
       setLoading(false);
       return;
     }
@@ -167,8 +188,6 @@ export const Deptos = () => {
       setErrorReserva('Error al guardar la reserva. Intenta de nuevo.');
       console.error('Error insertando:', errorInsert);
     } else {
-
-      // 4. LÓGICA DE ÉXITO (MODAL)
       setReservaInfo({
         nombre: nombreCompleto,
         depto: depto.nombre,
@@ -176,13 +195,12 @@ export const Deptos = () => {
         fechaInicio: formatFecha(rangoSeleccionado.from),
         fechaFin: formatFecha(rangoSeleccionado.to)
       });
-
       setRangoSeleccionado(undefined);
       setNombreCompleto('');
       setCantidadPersonas(1);
       setExitoReserva('');
       setShowModal(true);
-
+      
       setDiasOcupados([
         ...diasOcupados,
         {
@@ -194,18 +212,13 @@ export const Deptos = () => {
     setLoading(false);
   };
 
-  // --- FUNCIÓN DE WHATSAPP ---
   const handleWhatsAppNotify = () => {
     const adminNumber = '5493533407784';
-
     const mensaje = `¡Hola! Acabo de hacer una reserva a nombre de ${reservaInfo.nombre} para el ${reservaInfo.depto} (del ${reservaInfo.fechaInicio} al ${reservaInfo.fechaFin}). Ya te envío el comprobante de la seña de $${reservaInfo.monto.toLocaleString('es-AR')}.`;
-
     const whatsappUrl = `https://wa.me/${adminNumber}?text=${encodeURIComponent(mensaje)}`;
-
     window.open(whatsappUrl, '_blank');
     setShowModal(false);
   };
-
 
   if (!depto) return <h2>Departamento no encontrado</h2>;
 
@@ -271,7 +284,6 @@ export const Deptos = () => {
             />
           </div>
 
-          {/* CALENDARIO Y FORMULARIO DE RESERVA */}
           <div className="reserva-container">
             <h3>Disponibilidad y Reserva</h3>
             <p>Selecciona tu fecha de check-in y check-out en el calendario.</p>
@@ -281,11 +293,12 @@ export const Deptos = () => {
             <DayPicker
               mode="range"
               selected={rangoSeleccionado}
-              onSelect={setRangoSeleccionado}
+              onSelect={handleSelectRange} 
               disabled={[...diasOcupados, { before: new Date() }]}
               numberOfMonths={1}
               locale={es}
             />
+            
             <div className="fecha-seleccionada">
               {rangoSeleccionado?.from && (
                 <p>Check-in: <strong>{formatFecha(rangoSeleccionado.from)}</strong></p>
@@ -294,6 +307,7 @@ export const Deptos = () => {
                 <p>Check-out: <strong>{formatFecha(rangoSeleccionado.to)}</strong></p>
               )}
             </div>
+            
             <form onSubmit={handleReservar} className="reserva-form">
               <div className="form-group">
                 <label htmlFor="nombre">Nombre Completo</label>
@@ -328,7 +342,6 @@ export const Deptos = () => {
         </div>
       </div>
 
-      {/* --- MODAL DE DATOS BANCARIOS --- */}
       <Modal show={showModal} onHide={() => setShowModal(false)} centered>
         <Modal.Header closeButton>
           <Modal.Title>¡Reserva Pendiente!</Modal.Title>

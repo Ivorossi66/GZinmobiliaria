@@ -475,16 +475,15 @@ h2 {
 .error-msg { color: #dc3545; }
 
 /* ==========================================================================
-   MEDIA QUERIES (MÓVIL) - CORRECCIONES
+   MEDIA QUERIES (MÓVIL)
    ==========================================================================
 */
 @media (max-width: 768px) {
   
   /* Contenedor principal sin desbordes */
   .admin-container {
-    padding: 10px; /* Reducido para ganar espacio */
+    padding: 10px; 
     width: 100%;
-    /* CLAVE 4: Esconder cualquier desborde horizontal general */
     overflow-x: hidden; 
   }
 
