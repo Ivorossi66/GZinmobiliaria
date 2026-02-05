@@ -12,7 +12,6 @@ import { DayPicker } from 'react-day-picker';
 import 'react-day-picker/dist/style.css';
 import supabase from '../supabaseClient';
 import { Modal, Button } from 'react-bootstrap';
-// Nota: Importamos 'es' para el calendario, ya no necesitamos date-fns para la validación manual que haremos
 import { es } from 'date-fns/locale'; 
 
 // --- Función para formatear fechas a d-m-a ---
@@ -29,8 +28,8 @@ export const Deptos = () => {
   const depto = deptos.find((d) => d.id === id);
 
   // Estados
-  const [diasOcupados, setDiasOcupados] = useState([]); // VISUALES (Lo que se ve gris)
-  const [reservasExactas, setReservasExactas] = useState([]); // LÓGICA (Datos reales para validar)
+  const [diasOcupados, setDiasOcupados] = useState([]); // VISUALES (Solo días intermedios)
+  const [reservasExactas, setReservasExactas] = useState([]); // LÓGICA (Rangos completos para validar)
   
   const [rangoSeleccionado, setRangoSeleccionado] = useState(undefined);
   const [loading, setLoading] = useState(true);
@@ -40,6 +39,10 @@ export const Deptos = () => {
   const [cantidadPersonas, setCantidadPersonas] = useState(1);
   const [showModal, setShowModal] = useState(false);
   const [reservaInfo, setReservaInfo] = useState(null);
+
+  // Definimos "Hoy" para bloquear el pasado
+  const hoy = new Date();
+  hoy.setHours(0, 0, 0, 0);
 
   // Cargar las fechas ocupadas de Supabase
   useEffect(() => {
@@ -61,32 +64,31 @@ export const Deptos = () => {
         const exactas = [];
 
         data.forEach((reserva) => {
-          // 1. Guardamos las fechas EXACTAS para el "Policía" (Validación)
-          const realStart = new Date(reserva.fecha_inicio + 'T00:00:00');
-          const realEnd = new Date(reserva.fecha_fin + 'T00:00:00');
+          // Parseo seguro de fechas: "2026-02-11" -> Año, Mes (base 0), Día
+          const [anioI, mesI, diaI] = reserva.fecha_inicio.split('-');
+          const [anioF, mesF, diaF] = reserva.fecha_fin.split('-');
+          
+          // Fechas reales (00:00 hs)
+          const realStart = new Date(parseInt(anioI), parseInt(mesI) - 1, parseInt(diaI));
+          const realEnd = new Date(parseInt(anioF), parseInt(mesF) - 1, parseInt(diaF));
+          
+          // 1. Guardamos rango EXACTO para el "Policía" (Validación interna)
           exactas.push({ from: realStart, to: realEnd });
 
-          // 2. Calculamos los días "SÁNDWICH" para la Visual (Lo que se ve gris)
-          // Solo bloqueamos los días que están ESTRICTAMENTE en el medio.
-          // Ejemplo: Reserva del 12 al 15.
-          // Visual Start = 13 (Start + 1)
-          // Visual End   = 14 (End - 1)
-          // Resultado: 12 y 15 quedan LIBRES para clic (Check-out/Check-in), 13 y 14 GRISES.
-          
-          let visualStart = new Date(realStart);
-          visualStart.setDate(visualStart.getDate() + 1); // Empezamos un día después
+          // 2. Calculamos los días "SÁNDWICH" para la Visual (Lo que se pinta de gris)
+          // Empezamos UN DÍA DESPUÉS del inicio (para dejar libre el Check-in/out)
+          let diaIterador = new Date(realStart);
+          diaIterador.setDate(diaIterador.getDate() + 1); // Si empieza el 11, arrancamos el 12
 
-          let visualEnd = new Date(realEnd);
-          visualEnd.setDate(visualEnd.getDate() - 1); // Terminamos un día antes
-
-          // Solo agregamos rango visual si hay días en el medio
-          if (visualStart <= visualEnd) {
-             visuales.push({ from: visualStart, to: visualEnd });
+          // Mientras sea MENOR estricto al final (Si termina el 15, frenamos en 14)
+          while (diaIterador < realEnd) {
+             visuales.push(new Date(diaIterador));
+             diaIterador.setDate(diaIterador.getDate() + 1);
           }
         });
 
-        setReservasExactas(exactas); // Para validar lógica
-        setDiasOcupados(visuales);   // Para pintar el calendario
+        setReservasExactas(exactas);
+        setDiasOcupados(visuales);
       }
       setLoading(false);
     }
@@ -98,7 +100,7 @@ export const Deptos = () => {
   const handleSelectRange = (range) => {
     setErrorReserva(''); 
 
-    // Si está seleccionando, permitimos
+    // Si está limpiando la selección, permitimos
     if (!range || !range.from || !range.to) {
        setRangoSeleccionado(range);
        return;
@@ -107,25 +109,24 @@ export const Deptos = () => {
     const userStart = range.from.getTime();
     const userEnd = range.to.getTime();
 
-    // Verificamos conflicto matemático
-    // Regla: (InicioA < FinB) y (FinA > InicioB)
+    // Verificamos conflicto matemático estricto
+    // La fórmula permite que las puntas se toquen, pero no que se crucen.
+    // Conflicto si: (InicioUsuario < FinReserva) Y (FinUsuario > InicioReserva)
     const hayConflicto = reservasExactas.some((ocupado) => {
        const bookedStart = ocupado.from.getTime();
        const bookedEnd = ocupado.to.getTime();
-
-       // Esta fórmula detecta cualquier superposición de intervalos
        return (userStart < bookedEnd && userEnd > bookedStart);
     });
 
     if (hayConflicto) {
        setErrorReserva('⚠️ Fechas no disponibles (se superponen con otra reserva).');
-       setRangoSeleccionado(undefined); // Borramos selección
+       setRangoSeleccionado(undefined); // Borramos selección inválida
     } else {
-       setRangoSeleccionado(range); // Todo ok
+       setRangoSeleccionado(range); // Selección válida
     }
   };
 
-  // Manejo de la reserva
+  // Manejo del Submit de la reserva
   const handleReservar = async (e) => {
     e.preventDefault();
     setErrorReserva('');
@@ -142,7 +143,7 @@ export const Deptos = () => {
 
     setLoading(true);
 
-    // --- 1. LÓGICA DE CÁLCULO DE SEÑA ---
+    // --- 1. CÁLCULO DE PRECIO Y SEÑA ---
     let montoSeniaNum = 0;
     try {
       const fechaInicio = new Date(rangoSeleccionado.from);
@@ -167,16 +168,23 @@ export const Deptos = () => {
       montoSeniaNum = montoTotal * 0.5;
 
     } catch (calcError) {
-      console.error('Error calculando seña:', calcError, depto);
+      console.error('Error calculando seña:', calcError);
       setErrorReserva('Error al calcular el monto de la seña.');
       setLoading(false);
       return;
     }
 
-    const fecha_inicio_str = rangoSeleccionado.from.toISOString().split('T')[0];
-    const fecha_fin_str = rangoSeleccionado.to.toISOString().split('T')[0];
+    // Preparamos fechas ISO para Supabase
+    // Ajuste de zona horaria para que se guarde el día correcto
+    const fInicio = new Date(rangoSeleccionado.from);
+    fInicio.setMinutes(fInicio.getMinutes() - fInicio.getTimezoneOffset());
+    const fecha_inicio_str = fInicio.toISOString().split('T')[0];
 
-    // 2. VERIFICACIÓN DE OVERLAP FINAL (Doble chequeo en Base de Datos)
+    const fFin = new Date(rangoSeleccionado.to);
+    fFin.setMinutes(fFin.getMinutes() - fFin.getTimezoneOffset());
+    const fecha_fin_str = fFin.toISOString().split('T')[0];
+
+    // 2. DOBLE CHEQUEO DE SEGURIDAD EN BASE DE DATOS
     const { data: conflicto, error: errorConflicto } = await supabase
       .from('reservas')
       .select('id_reserva')
@@ -186,19 +194,19 @@ export const Deptos = () => {
       .gt('fecha_fin', fecha_inicio_str);
 
     if (errorConflicto) {
-      console.error('Error en el chequeo de overlap:', errorConflicto);
-      setErrorReserva('Error al verificar disponibilidad. Intenta de nuevo.');
+      console.error('Error overlap BD:', errorConflicto);
+      setErrorReserva('Error al verificar disponibilidad.');
       setLoading(false);
       return;
     }
 
     if (conflicto && conflicto.length > 0) {
-      setErrorReserva('Ups! Esas fechas acaban de ser ocupadas. Actualiza la página.');
+      setErrorReserva('Ups! Esas fechas acaban de ser ocupadas.');
       setLoading(false);
       return;
     }
 
-    // 3. CREAR LA RESERVA 
+    // 3. INSERTAR RESERVA
     const { error: errorInsert } = await supabase
       .from('reservas')
       .insert({
@@ -213,8 +221,8 @@ export const Deptos = () => {
       });
 
     if (errorInsert) {
-      setErrorReserva('Error al guardar la reserva. Intenta de nuevo.');
       console.error('Error insertando:', errorInsert);
+      setErrorReserva('Error al guardar la reserva.');
     } else {
       setReservaInfo({
         nombre: nombreCompleto,
@@ -229,21 +237,20 @@ export const Deptos = () => {
       setExitoReserva('');
       setShowModal(true);
       
-      // Actualizamos visuales: Agregamos el "Sándwich" nuevo a lo gris
-      // para que el usuario vea el cambio instantáneo
-      let visualStart = new Date(rangoSeleccionado.from);
-      visualStart.setDate(visualStart.getDate() + 1);
-      let visualEnd = new Date(rangoSeleccionado.to);
-      visualEnd.setDate(visualEnd.getDate() - 1);
+      // Actualizamos visuales localmente para feedback inmediato
+      // Solo agregamos los días intermedios a la lista de bloqueados
+      const nuevasVisuales = [];
+      let iterador = new Date(rangoSeleccionado.from);
+      iterador.setDate(iterador.getDate() + 1); // +1 día
+      const finIteracion = new Date(rangoSeleccionado.to);
 
-      if (visualStart <= visualEnd) {
-        setDiasOcupados([
-          ...diasOcupados,
-          { from: visualStart, to: visualEnd },
-        ]);
+      while (iterador < finIteracion) {
+         nuevasVisuales.push(new Date(iterador));
+         iterador.setDate(iterador.getDate() + 1);
       }
+      setDiasOcupados([...diasOcupados, ...nuevasVisuales]);
       
-      // Actualizamos lógica también
+      // Actualizamos lógica
       setReservasExactas([
          ...reservasExactas,
          { from: rangoSeleccionado.from, to: rangoSeleccionado.to }
@@ -299,17 +306,14 @@ export const Deptos = () => {
 
           <h3>Incluye Ropa Blanca</h3>
           <p>{depto.blanco}</p>
-
           <h3>Seña</h3>
           <p>{depto.senia}</p>
-
           {depto.descuento && (
             <>
               <h3>Descuento</h3>
               <p>{depto.descuento}</p>
             </>
           )}
-
           <h3>Horario</h3>
           <p>{depto.horario}</p>
           <h3>Prohibido Fumar</h3>
@@ -334,7 +338,8 @@ export const Deptos = () => {
               mode="range"
               selected={rangoSeleccionado}
               onSelect={handleSelectRange} 
-              disabled={[...diasOcupados, { before: new Date() }]}
+              // AQUI ESTÁ EL CAMBIO: Bloqueamos ocupados Y días pasados
+              disabled={[...diasOcupados, { before: hoy }]}
               numberOfMonths={1}
               locale={es}
             />
