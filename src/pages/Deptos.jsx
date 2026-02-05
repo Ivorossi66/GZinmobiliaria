@@ -10,13 +10,9 @@ import { IoPersonSharp } from 'react-icons/io5';
 import { FaWhatsapp } from 'react-icons/fa';
 import { DayPicker } from 'react-day-picker';
 import 'react-day-picker/dist/style.css';
-import  supabase  from '../supabaseClient';
+import supabase from '../supabaseClient';
 import { Modal, Button } from 'react-bootstrap';
-
-// --- CORRECCIÓN AQUÍ ---
-// 1. Importamos la función de cálculo desde la raíz
-import { areIntervalsOverlapping } from 'date-fns';
-// 2. Importamos el idioma desde su carpeta específica
+// Nota: Importamos 'es' para el calendario, ya no necesitamos date-fns para la validación manual que haremos
 import { es } from 'date-fns/locale'; 
 
 // --- Función para formatear fechas a d-m-a ---
@@ -32,8 +28,10 @@ export const Deptos = () => {
   const { id } = useParams();
   const depto = deptos.find((d) => d.id === id);
 
-  //Estados
-  const [diasOcupados, setDiasOcupados] = useState([]);
+  // Estados
+  const [diasOcupados, setDiasOcupados] = useState([]); // VISUALES (Lo que se ve gris)
+  const [reservasExactas, setReservasExactas] = useState([]); // LÓGICA (Datos reales para validar)
+  
   const [rangoSeleccionado, setRangoSeleccionado] = useState(undefined);
   const [loading, setLoading] = useState(true);
   const [errorReserva, setErrorReserva] = useState('');
@@ -43,7 +41,7 @@ export const Deptos = () => {
   const [showModal, setShowModal] = useState(false);
   const [reservaInfo, setReservaInfo] = useState(null);
 
-  //Cargar las fechas ocupadas de Supabase
+  // Cargar las fechas ocupadas de Supabase
   useEffect(() => {
     async function getReservas() {
       if (!id) return;
@@ -59,13 +57,36 @@ export const Deptos = () => {
         console.error('Error al cargar reservas:', error);
         setErrorReserva('No se pudo cargar la disponibilidad.');
       } else {
-        const rangosOcupados = data.map((reserva) => {
-          const fromDate = new Date(reserva.fecha_inicio + 'T00:00:00');
-          const toDate = new Date(reserva.fecha_fin + 'T00:00:00');
-          toDate.setDate(toDate.getDate() - 1);
-          return { from: fromDate, to: toDate };
+        const visuales = [];
+        const exactas = [];
+
+        data.forEach((reserva) => {
+          // 1. Guardamos las fechas EXACTAS para el "Policía" (Validación)
+          const realStart = new Date(reserva.fecha_inicio + 'T00:00:00');
+          const realEnd = new Date(reserva.fecha_fin + 'T00:00:00');
+          exactas.push({ from: realStart, to: realEnd });
+
+          // 2. Calculamos los días "SÁNDWICH" para la Visual (Lo que se ve gris)
+          // Solo bloqueamos los días que están ESTRICTAMENTE en el medio.
+          // Ejemplo: Reserva del 12 al 15.
+          // Visual Start = 13 (Start + 1)
+          // Visual End   = 14 (End - 1)
+          // Resultado: 12 y 15 quedan LIBRES para clic (Check-out/Check-in), 13 y 14 GRISES.
+          
+          let visualStart = new Date(realStart);
+          visualStart.setDate(visualStart.getDate() + 1); // Empezamos un día después
+
+          let visualEnd = new Date(realEnd);
+          visualEnd.setDate(visualEnd.getDate() - 1); // Terminamos un día antes
+
+          // Solo agregamos rango visual si hay días en el medio
+          if (visualStart <= visualEnd) {
+             visuales.push({ from: visualStart, to: visualEnd });
+          }
         });
-        setDiasOcupados(rangosOcupados);
+
+        setReservasExactas(exactas); // Para validar lógica
+        setDiasOcupados(visuales);   // Para pintar el calendario
       }
       setLoading(false);
     }
@@ -73,27 +94,34 @@ export const Deptos = () => {
     getReservas();
   }, [id]);
 
-  // --- FUNCIÓN DE VALIDACIÓN (CORREGIDA) ---
+  // --- FUNCIÓN DE VALIDACIÓN "EL POLICÍA" ---
   const handleSelectRange = (range) => {
     setErrorReserva(''); 
 
+    // Si está seleccionando, permitimos
     if (!range || !range.from || !range.to) {
        setRangoSeleccionado(range);
        return;
     }
 
-    const hayConflicto = diasOcupados.some((ocupado) => {
-       return areIntervalsOverlapping(
-          { start: range.from, end: range.to },
-          { start: ocupado.from, end: ocupado.to }
-       );
+    const userStart = range.from.getTime();
+    const userEnd = range.to.getTime();
+
+    // Verificamos conflicto matemático
+    // Regla: (InicioA < FinB) y (FinA > InicioB)
+    const hayConflicto = reservasExactas.some((ocupado) => {
+       const bookedStart = ocupado.from.getTime();
+       const bookedEnd = ocupado.to.getTime();
+
+       // Esta fórmula detecta cualquier superposición de intervalos
+       return (userStart < bookedEnd && userEnd > bookedStart);
     });
 
     if (hayConflicto) {
-       setErrorReserva('⚠️ No se pueden seleccionar estas fechas porque hay días ocupados en el medio.');
-       setRangoSeleccionado(undefined); 
+       setErrorReserva('⚠️ Fechas no disponibles (se superponen con otra reserva).');
+       setRangoSeleccionado(undefined); // Borramos selección
     } else {
-       setRangoSeleccionado(range);
+       setRangoSeleccionado(range); // Todo ok
     }
   };
 
@@ -148,7 +176,7 @@ export const Deptos = () => {
     const fecha_inicio_str = rangoSeleccionado.from.toISOString().split('T')[0];
     const fecha_fin_str = rangoSeleccionado.to.toISOString().split('T')[0];
 
-    // 2. VERIFICACIÓN DE OVERLAP FINAL
+    // 2. VERIFICACIÓN DE OVERLAP FINAL (Doble chequeo en Base de Datos)
     const { data: conflicto, error: errorConflicto } = await supabase
       .from('reservas')
       .select('id_reserva')
@@ -201,12 +229,24 @@ export const Deptos = () => {
       setExitoReserva('');
       setShowModal(true);
       
-      setDiasOcupados([
-        ...diasOcupados,
-        {
-          from: rangoSeleccionado.from,
-          to: new Date(rangoSeleccionado.to.getTime() - 24 * 60 * 60 * 1000),
-        },
+      // Actualizamos visuales: Agregamos el "Sándwich" nuevo a lo gris
+      // para que el usuario vea el cambio instantáneo
+      let visualStart = new Date(rangoSeleccionado.from);
+      visualStart.setDate(visualStart.getDate() + 1);
+      let visualEnd = new Date(rangoSeleccionado.to);
+      visualEnd.setDate(visualEnd.getDate() - 1);
+
+      if (visualStart <= visualEnd) {
+        setDiasOcupados([
+          ...diasOcupados,
+          { from: visualStart, to: visualEnd },
+        ]);
+      }
+      
+      // Actualizamos lógica también
+      setReservasExactas([
+         ...reservasExactas,
+         { from: rangoSeleccionado.from, to: rangoSeleccionado.to }
       ]);
     }
     setLoading(false);
