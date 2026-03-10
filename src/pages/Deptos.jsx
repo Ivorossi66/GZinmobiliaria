@@ -14,7 +14,6 @@ import supabase from '../supabaseClient';
 import { Modal, Button } from 'react-bootstrap';
 import { es } from 'date-fns/locale'; 
 
-// --- Función para formatear fechas a d-m-a ---
 const formatFecha = (date) => {
   if (!date) return '';
   const dia = String(date.getDate()).padStart(2, '0');
@@ -27,9 +26,9 @@ export const Deptos = () => {
   const { id } = useParams();
   const depto = deptos.find((d) => d.id === id);
 
-  // Estados
-  const [diasOcupados, setDiasOcupados] = useState([]); // VISUALES (Solo días intermedios)
-  const [reservasExactas, setReservasExactas] = useState([]); // LÓGICA (Rangos completos para validar)
+  const [diasOcupados, setDiasOcupados] = useState([]); // Visual: Bloqueo estricto (no clickeable)
+  const [diasColoreados, setDiasColoreados] = useState([]); // Visual: Color rojo (ocupado)
+  const [reservasExactas, setReservasExactas] = useState([]); // Lógica de Validación
   
   const [rangoSeleccionado, setRangoSeleccionado] = useState(undefined);
   const [loading, setLoading] = useState(true);
@@ -40,11 +39,9 @@ export const Deptos = () => {
   const [showModal, setShowModal] = useState(false);
   const [reservaInfo, setReservaInfo] = useState(null);
 
-  // Definimos "Hoy" para bloquear el pasado
   const hoy = new Date();
   hoy.setHours(0, 0, 0, 0);
 
-  // Cargar las fechas ocupadas de Supabase
   useEffect(() => {
     async function getReservas() {
       if (!id) return;
@@ -60,35 +57,41 @@ export const Deptos = () => {
         console.error('Error al cargar reservas:', error);
         setErrorReserva('No se pudo cargar la disponibilidad.');
       } else {
-        const visuales = [];
+        const visualesDisabled = [];
+        const visualesColoreados = [];
         const exactas = [];
 
         data.forEach((reserva) => {
-          // Parseo seguro de fechas: "2026-02-11" -> Año, Mes (base 0), Día
           const [anioI, mesI, diaI] = reserva.fecha_inicio.split('-');
           const [anioF, mesF, diaF] = reserva.fecha_fin.split('-');
           
-          // Fechas reales (00:00 hs)
           const realStart = new Date(parseInt(anioI), parseInt(mesI) - 1, parseInt(diaI));
-          const realEnd = new Date(parseInt(anioF), parseInt(mesF) - 1, parseInt(diaF));
+          realStart.setHours(0, 0, 0, 0); // Forzamos 00:00hs
           
-          // 1. Guardamos rango EXACTO para el "Policía" (Validación interna)
+          const realEnd = new Date(parseInt(anioF), parseInt(mesF) - 1, parseInt(diaF));
+          realEnd.setHours(0, 0, 0, 0); // Forzamos 00:00hs
+          
           exactas.push({ from: realStart, to: realEnd });
 
-          // 2. Calculamos los días "SÁNDWICH" para la Visual (Lo que se pinta de gris)
-          // Empezamos UN DÍA DESPUÉS del inicio (para dejar libre el Check-in/out)
-          let diaIterador = new Date(realStart);
-          diaIterador.setDate(diaIterador.getDate() + 1); // Si empieza el 11, arrancamos el 12
+          // Color Rojo: Noches que duerme (No incluye Check-out)
+          let diaParaColor = new Date(realStart);
+          while (diaParaColor < realEnd) { 
+             visualesColoreados.push(new Date(diaParaColor));
+             diaParaColor.setDate(diaParaColor.getDate() + 1);
+          }
 
-          // Mientras sea MENOR estricto al final (Si termina el 15, frenamos en 14)
+          // Bloqueo Clic: Días en el medio (No bloquea entrada ni salida)
+          let diaIterador = new Date(realStart);
+          diaIterador.setDate(diaIterador.getDate() + 1); 
           while (diaIterador < realEnd) {
-             visuales.push(new Date(diaIterador));
+             visualesDisabled.push(new Date(diaIterador));
              diaIterador.setDate(diaIterador.getDate() + 1);
           }
         });
 
         setReservasExactas(exactas);
-        setDiasOcupados(visuales);
+        setDiasColoreados(visualesColoreados);
+        setDiasOcupados(visualesDisabled);
       }
       setLoading(false);
     }
@@ -96,37 +99,63 @@ export const Deptos = () => {
     getReservas();
   }, [id]);
 
-  // --- FUNCIÓN DE VALIDACIÓN "EL POLICÍA" ---
+  // Bloqueo dinámico para evitar "Puentes" mientras se hace clic
+  const diasDeshabilitados = [...diasOcupados, { before: hoy }];
+
+  if (rangoSeleccionado?.from && !rangoSeleccionado?.to) {
+      const fromTime = rangoSeleccionado.from.getTime();
+      let nextBookingStart = null;
+      
+      reservasExactas.forEach(res => {
+          const rStart = res.from.getTime();
+          // Si hay una reserva que empieza ese mismo día o después
+          if (rStart >= fromTime) {
+              if (!nextBookingStart || rStart < nextBookingStart) {
+                  nextBookingStart = rStart;
+              }
+          }
+      });
+
+      // Deshabilitamos todo DESPUÉS del check-in de la próxima reserva
+      if (nextBookingStart) {
+          diasDeshabilitados.push({ after: new Date(nextBookingStart) });
+      }
+  }
+
+  // Validación final al seleccionar
   const handleSelectRange = (range) => {
     setErrorReserva(''); 
 
-    // Si está limpiando la selección, permitimos
-    if (!range || !range.from || !range.to) {
-       setRangoSeleccionado(range);
+    if (!range) {
+       setRangoSeleccionado(undefined);
        return;
     }
 
-    const userStart = range.from.getTime();
-    const userEnd = range.to.getTime();
+    if (range.from && !range.to) {
+        setRangoSeleccionado(range);
+        return;
+    }
 
-    // Verificamos conflicto matemático estricto
-    // La fórmula permite que las puntas se toquen, pero no que se crucen.
-    // Conflicto si: (InicioUsuario < FinReserva) Y (FinUsuario > InicioReserva)
-    const hayConflicto = reservasExactas.some((ocupado) => {
-       const bookedStart = ocupado.from.getTime();
-       const bookedEnd = ocupado.to.getTime();
-       return (userStart < bookedEnd && userEnd > bookedStart);
-    });
+    if (range.from && range.to) {
+        const userStart = range.from.getTime();
+        const userEnd = range.to.getTime();
 
-    if (hayConflicto) {
-       setErrorReserva('⚠️ Fechas no disponibles (se superponen con otra reserva).');
-       setRangoSeleccionado(undefined); // Borramos selección inválida
-    } else {
-       setRangoSeleccionado(range); // Selección válida
+        // Fórmula matemática estricta para cruces
+        const hayConflicto = reservasExactas.some((ocupado) => {
+           const bookedStart = ocupado.from.getTime();
+           const bookedEnd = ocupado.to.getTime();
+           return (userStart < bookedEnd && userEnd > bookedStart);
+        });
+
+        if (hayConflicto) {
+           window.alert('⚠️ No se pueden seleccionar estas fechas porque están ocupadas.');
+           setRangoSeleccionado(undefined);
+        } else {
+           setRangoSeleccionado(range);
+        }
     }
   };
 
-  // Manejo del Submit de la reserva
   const handleReservar = async (e) => {
     e.preventDefault();
     setErrorReserva('');
@@ -143,7 +172,6 @@ export const Deptos = () => {
 
     setLoading(true);
 
-    // --- 1. CÁLCULO DE PRECIO Y SEÑA ---
     let montoSeniaNum = 0;
     try {
       const fechaInicio = new Date(rangoSeleccionado.from);
@@ -174,8 +202,6 @@ export const Deptos = () => {
       return;
     }
 
-    // Preparamos fechas ISO para Supabase
-    // Ajuste de zona horaria para que se guarde el día correcto
     const fInicio = new Date(rangoSeleccionado.from);
     fInicio.setMinutes(fInicio.getMinutes() - fInicio.getTimezoneOffset());
     const fecha_inicio_str = fInicio.toISOString().split('T')[0];
@@ -184,7 +210,6 @@ export const Deptos = () => {
     fFin.setMinutes(fFin.getMinutes() - fFin.getTimezoneOffset());
     const fecha_fin_str = fFin.toISOString().split('T')[0];
 
-    // 2. DOBLE CHEQUEO DE SEGURIDAD EN BASE DE DATOS
     const { data: conflicto, error: errorConflicto } = await supabase
       .from('reservas')
       .select('id_reserva')
@@ -201,12 +226,11 @@ export const Deptos = () => {
     }
 
     if (conflicto && conflicto.length > 0) {
-      setErrorReserva('Ups! Esas fechas acaban de ser ocupadas.');
+      window.alert('⚠️ Ups! Esas fechas acaban de ser ocupadas por alguien más.');
       setLoading(false);
       return;
     }
 
-    // 3. INSERTAR RESERVA
     const { error: errorInsert } = await supabase
       .from('reservas')
       .insert({
@@ -237,23 +261,33 @@ export const Deptos = () => {
       setExitoReserva('');
       setShowModal(true);
       
-      // Actualizamos visuales localmente para feedback inmediato
-      // Solo agregamos los días intermedios a la lista de bloqueados
-      const nuevasVisuales = [];
-      let iterador = new Date(rangoSeleccionado.from);
-      iterador.setDate(iterador.getDate() + 1); // +1 día
-      const finIteracion = new Date(rangoSeleccionado.to);
-
-      while (iterador < finIteracion) {
-         nuevasVisuales.push(new Date(iterador));
-         iterador.setDate(iterador.getDate() + 1);
-      }
-      setDiasOcupados([...diasOcupados, ...nuevasVisuales]);
+      const nuevasVisualesDisabled = [];
+      const nuevasVisualesColoreadas = [];
       
-      // Actualizamos lógica
+      let iteradorColor = new Date(rangoSeleccionado.from);
+      iteradorColor.setHours(0,0,0,0);
+      const finIteracion = new Date(rangoSeleccionado.to);
+      finIteracion.setHours(0,0,0,0);
+      
+      while (iteradorColor < finIteracion) { 
+         nuevasVisualesColoreadas.push(new Date(iteradorColor));
+         iteradorColor.setDate(iteradorColor.getDate() + 1);
+      }
+
+      let iteradorDisabled = new Date(rangoSeleccionado.from);
+      iteradorDisabled.setHours(0,0,0,0);
+      iteradorDisabled.setDate(iteradorDisabled.getDate() + 1);
+      while (iteradorDisabled < finIteracion) {
+         nuevasVisualesDisabled.push(new Date(iteradorDisabled));
+         iteradorDisabled.setDate(iteradorDisabled.getDate() + 1);
+      }
+
+      setDiasColoreados([...diasColoreados, ...nuevasVisualesColoreadas]);
+      setDiasOcupados([...diasOcupados, ...nuevasVisualesDisabled]);
+      
       setReservasExactas([
          ...reservasExactas,
-         { from: rangoSeleccionado.from, to: rangoSeleccionado.to }
+         { from: new Date(rangoSeleccionado.from), to: new Date(rangoSeleccionado.to) }
       ]);
     }
     setLoading(false);
@@ -338,8 +372,11 @@ export const Deptos = () => {
               mode="range"
               selected={rangoSeleccionado}
               onSelect={handleSelectRange} 
-              // AQUI ESTÁ EL CAMBIO: Bloqueamos ocupados Y días pasados
-              disabled={[...diasOcupados, { before: hoy }]}
+              disabled={diasDeshabilitados}
+              modifiers={{ ocupado: diasColoreados }}
+              modifiersStyles={{
+                ocupado: { backgroundColor: '#ffcccc', color: '#cc0000', fontWeight: 'bold' }
+              }}
               numberOfMonths={1}
               locale={es}
             />
