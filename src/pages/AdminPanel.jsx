@@ -145,7 +145,7 @@ export const AdminPanel = () => {
         .from('reservas')
         .select('*, departamentos(nombre)') 
         .neq('estado', 'Cancelada')
-        .order('fecha_inicio', { ascending: true }); // Supabase las trae cronológicamente
+        .order('id_reserva', { ascending: false }); // Supabase las trae cronológicamente
 
       if (reservasError) {
         setError('Error al cargar datos.');
