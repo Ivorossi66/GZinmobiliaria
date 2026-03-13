@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import  supabase  from '../supabaseClient';
+import supabase from '../supabaseClient';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import { FaChevronLeft, FaChevronRight, FaPlus, FaTimes } from 'react-icons/fa';
@@ -82,7 +82,7 @@ export const AdminPanel = () => {
   // Estados Form Bloqueo
   const [mostrarFormBloqueo, setMostrarFormBloqueo] = useState(false);
   const [nuevoBloqueo, setNuevoBloqueo] = useState({
-    id_apartamento: '', // Usamos id_apartamento para coincidir con tu tabla
+    id_apartamento: '', 
     fecha_inicio: '', 
     fecha_fin: '', 
     motivo: ''
@@ -115,33 +115,46 @@ export const AdminPanel = () => {
     };
   }, []);
 
+  // --- FUNCIÓN PARA ORDENAR RESERVAS (Actuales primero, Pasadas al final) ---
+  const ordenarReservasInteligente = (data) => {
+    // Calculamos "hoy" en formato YYYY-MM-DD
+    const fHoy = new Date();
+    fHoy.setMinutes(fHoy.getMinutes() - fHoy.getTimezoneOffset());
+    const hoyStr = fHoy.toISOString().split('T')[0];
+
+    // Separamos las reservas
+    const activasOFuturas = data.filter(r => r.fecha_fin >= hoyStr);
+    const pasadas = data.filter(r => r.fecha_fin < hoyStr).reverse(); // Invertimos para ver lo más reciente del pasado primero
+
+    return [...activasOFuturas, ...pasadas];
+  };
+
   // Cargar Deptos y Reservas
   useEffect(() => {
     const fetchDatos = async () => {
       setLoading(true);
       
-      // 1. Cargar Departamentos (tabla departamentos)
-      const { data: deptosData, error: deptosError } = await supabase
+      const { data: deptosData } = await supabase
         .from('departamentos')
-        .select('*') // Trae: id_apartamento, nombre, capacidad_max
+        .select('*') 
         .order('nombre');
       
       if (deptosData) setDeptos(deptosData);
 
-      // 2. Cargar Reservas (tabla reservas)
-      // Nota: Asumimos que la relación en Supabase se llama "departamentos"
       const { data: reservasData, error: reservasError } = await supabase
         .from('reservas')
         .select('*, departamentos(nombre)') 
         .neq('estado', 'Cancelada')
-        .order('fecha_inicio', { ascending: true });
+        .order('fecha_inicio', { ascending: true }); // Supabase las trae cronológicamente
 
       if (reservasError) {
         setError('Error al cargar datos.');
         console.error(reservasError);
       } else {
-        setReservas(reservasData);
-        procesarFechasOcupadas(reservasData);
+        // APLICAMOS LA MAGIA ACÁ
+        const reservasOrdenadas = ordenarReservasInteligente(reservasData);
+        setReservas(reservasOrdenadas);
+        procesarFechasOcupadas(reservasData); // Para el resumen mensual pasamos todas
       }
       setLoading(false);
     };
@@ -193,8 +206,11 @@ export const AdminPanel = () => {
       .select('*, departamentos(nombre)')
       .neq('estado', 'Cancelada')
       .order('fecha_inicio', { ascending: true });
+    
     if (data) {
-      setReservas(data);
+      // APLICAMOS LA MAGIA ACÁ TAMBIÉN
+      const reservasOrdenadas = ordenarReservasInteligente(data);
+      setReservas(reservasOrdenadas);
       procesarFechasOcupadas(data);
     }
   };
@@ -210,7 +226,6 @@ export const AdminPanel = () => {
     }
   };
 
-  // --- LÓGICA DE BLOQUEO (CORREGIDA FINAL) ---
   const handleCrearBloqueo = async (e) => {
     e.preventDefault();
     if(!nuevoBloqueo.id_apartamento || !nuevoBloqueo.fecha_inicio || !nuevoBloqueo.fecha_fin) {
@@ -223,9 +238,8 @@ export const AdminPanel = () => {
 
     let bloqueosAInsertar = [];
 
-    // Objeto base con columnas EXACTAS de la tabla 'reservas'
     const baseBloqueo = {
-        id_apartamento: parseInt(nuevoBloqueo.id_apartamento), // Aseguramos que sea entero
+        id_apartamento: parseInt(nuevoBloqueo.id_apartamento), 
         nombre_completo: nuevoBloqueo.motivo || 'Bloqueo Manual',
         cantidad_personas: 0, 
         monto_seña: 0, 
@@ -234,14 +248,12 @@ export const AdminPanel = () => {
     };
 
     if (esRangoCompleto) {
-      // Bloqueo continuo
       bloqueosAInsertar.push({
         ...baseBloqueo,
         fecha_inicio: nuevoBloqueo.fecha_inicio,
         fecha_fin: nuevoBloqueo.fecha_fin,
       });
     } else {
-      // Bloqueo por días específicos
       let currentDate = new Date(nuevoBloqueo.fecha_inicio + 'T00:00:00');
       const endDate = new Date(nuevoBloqueo.fecha_fin + 'T00:00:00');
 
@@ -329,7 +341,6 @@ export const AdminPanel = () => {
                   >
                     <option value="">Seleccionar...</option>
                     {deptos.map(d => (
-                      /* CORRECCIÓN CLAVE AQUÍ: Usamos d.id_apartamento */
                       <option key={d.id_apartamento} value={d.id_apartamento}>
                         {d.nombre}
                       </option>
@@ -345,7 +356,6 @@ export const AdminPanel = () => {
                   <input type="date" value={nuevoBloqueo.fecha_fin} onChange={(e) => setNuevoBloqueo({...nuevoBloqueo, fecha_fin: e.target.value})} required />
                 </div>
                 
-                {/* SELECCIÓN DE DÍAS */}
                 <div className="input-group dias-semana-group">
                   <label>Repetir solo los días: <small>(Vacío = Todos)</small></label>
                   <div className="dias-checkboxes">
